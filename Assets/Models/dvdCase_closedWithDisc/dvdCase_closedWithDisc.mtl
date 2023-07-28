@@ -1,0 +1,84 @@
+newmtl dvdCase_closedWithDisc_poster_Mat
+Ni 1.600
+Ka 0 0 0
+Pm 0
+d 1.0
+Ke 0.0
+Kd 0 0 0
+adobe_map_normal dvdCase_closedWithDisc/dvdCase_closedWithDisc_poster_normal.png
+map_Kd dvdCase_closedWithDisc/dvdCase_closedWithDisc_poster_baseColor.png
+Tr 0
+illum 7
+Ks 1 1 1
+adobe_map_roughness dvdCase_closedWithDisc/dvdCase_closedWithDisc_poster_roughness.png
+adobe_interior_color 1.0 1.0 1.0
+adobe_density 0
+Ns 16
+adobe_translucence 0
+newmtl dvdCase_closedWithDisc_box_Mat
+Ni 1.600
+Ka 0 0 0
+Pm 0
+d 1.0
+Ke 0.0
+Kd 0 0 0
+adobe_map_normal dvdCase_closedWithDisc/dvdCase_closedWithDisc_box_normal.png
+map_Kd dvdCase_closedWithDisc/dvdCase_closedWithDisc_box_baseColor.png
+Tr 0
+illum 7
+Ks 1 1 1
+adobe_map_roughness dvdCase_closedWithDisc/dvdCase_closedWithDisc_box_roughness.png
+adobe_interior_color 1.0 1.0 1.0
+adobe_density 0
+Ns 16
+adobe_translucence 0
+newmtl dvdCase_closedWithDisc_plastic_Mat
+Ni 1.600
+Ka 0 0 0
+Pm 0
+d 1.0
+Ke 0.0
+Kd 0 0 0
+adobe_map_normal dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_normal.png
+Tr 0
+illum 7
+Ks 1 1 1
+adobe_map_roughness dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_roughness.png
+adobe_interior_color 0.025 0.277 0.093
+adobe_density 0.800
+Ns 16
+adobe_map_translucence dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_translucence.png
+map_Kd dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_baseColor.png
+newmtl dvdCase_closedWithDisc_recordLayer_Mat
+Ni 20.00
+Ka 0 0 0
+Pm 1
+d 1.0
+Ke 0.0
+Kd 0 0 0
+map_Kd dvdCase_closedWithDisc/dvdCase_closedWithDisc_recordLayer_baseColor.png
+Tr 0
+illum 7
+Ks 1 1 1
+adobe_map_roughness dvdCase_closedWithDisc/dvdCase_closedWithDisc_recordLayer_roughness.png
+adobe_interior_color 1.0 1.0 1.0
+adobe_density 0
+Ns 16
+adobe_translucence 0
+newmtl dvdCase_closedWithDisc_label_Mat
+Ni 1.600
+Ka 0 0 0
+map_Ke dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_self-luminous.png
+Pm 0
+d 1.0
+Kd 0 0 0
+adobe_map_normal dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_normal.png
+map_Kd dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_baseColor.png
+Tr 0
+illum 7
+Ks 1 1 1
+adobe_map_roughness dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_roughness.png
+adobe_interior_color 1.0 1.0 1.0
+adobe_density 0
+Ns 16
+adobe_translucence 0

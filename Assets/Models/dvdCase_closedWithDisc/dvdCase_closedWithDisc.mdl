@@ -1,0 +1,88 @@
+mdl 1.3;
+
+using state import *;
+
+import adobe::mtl::*;
+import adobe::util::*;
+import ::tex::gamma_mode;
+import ::state::normal;
+
+export material dvdCase_closedWithDisc_plastic_Mat(*)
+  = adobe::mtl::standard(
+    translucence : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_translucence.png", ::tex::gamma_linear) ),
+    baseColor : adobe::util::color_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_baseColor.png", ::tex::gamma_srgb) ),
+    interiorColor : color(0.025019992142915726, 0.27799999713897705, 0.0931306704878807),
+    metallic : float(0),
+    roughness : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_roughness.png", ::tex::gamma_linear) ),
+    density : float(0.800000011921),
+    indexOfRefraction : float(1.6000),
+    glow : float(0.0),
+    opacity : float(1.0),
+    normal : adobe::util::normal_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_plastic_normal.png", ::tex::gamma_linear) ),
+    height : float(0.5),
+    heightScale : float(1.0)
+    );
+
+export material dvdCase_closedWithDisc_poster_Mat(*)
+  = adobe::mtl::standard(
+    translucence : float(0),
+    interiorColor : color(1.0, 1.0, 1.0),
+    metallic : float(0),
+    baseColor : adobe::util::color_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_poster_baseColor.png", ::tex::gamma_srgb) ),
+    roughness : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_poster_roughness.png", ::tex::gamma_linear) ),
+    density : float(0),
+    indexOfRefraction : float(1.6000),
+    glow : float(0.0),
+    opacity : float(1.0),
+    normal : adobe::util::normal_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_poster_normal.png", ::tex::gamma_linear) ),
+    height : float(0.5),
+    heightScale : float(1.0)
+    );
+
+export material dvdCase_closedWithDisc_recordLayer_Mat(*)
+  = adobe::mtl::standard(
+    translucence : float(0),
+    interiorColor : color(1.0, 1.0, 1.0),
+    metallic : float(1),
+    baseColor : adobe::util::color_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_recordLayer_baseColor.png", ::tex::gamma_srgb) ),
+    roughness : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_recordLayer_roughness.png", ::tex::gamma_linear) ),
+    density : float(0),
+    indexOfRefraction : float(20.0000),
+    glow : float(0.0),
+    opacity : float(1.0),
+    normal : ::state::normal(),
+    height : float(0.5),
+    heightScale : float(1.0)
+    );
+
+export material dvdCase_closedWithDisc_box_Mat(*)
+  = adobe::mtl::standard(
+    translucence : float(0),
+    interiorColor : color(1.0, 1.0, 1.0),
+    metallic : float(0),
+    baseColor : adobe::util::color_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_box_baseColor.png", ::tex::gamma_srgb) ),
+    roughness : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_box_roughness.png", ::tex::gamma_linear) ),
+    density : float(0),
+    indexOfRefraction : float(1.6000),
+    glow : float(0.0),
+    opacity : float(1.0),
+    normal : adobe::util::normal_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_box_normal.png", ::tex::gamma_linear) ),
+    height : float(0.5),
+    heightScale : float(1.0)
+    );
+
+export material dvdCase_closedWithDisc_label_Mat(*)
+  = adobe::mtl::standard(
+    translucence : float(0),
+    interiorColor : color(1.0, 1.0, 1.0),
+    metallic : float(0),
+    baseColor : adobe::util::color_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_baseColor.png", ::tex::gamma_srgb) ),
+    roughness : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_roughness.png", ::tex::gamma_linear) ),
+    density : float(0),
+    indexOfRefraction : float(1.6000),
+    glow : adobe::util::float_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_self-luminous.png", ::tex::gamma_linear) ),
+    opacity : float(1.0),
+    normal : adobe::util::normal_texture( texture_2d("dvdCase_closedWithDisc/dvdCase_closedWithDisc_label_normal.png", ::tex::gamma_linear) ),
+    height : float(0.5),
+    heightScale : float(1.0)
+    );
