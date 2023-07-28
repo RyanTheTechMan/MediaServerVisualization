@@ -8,9 +8,12 @@ public class MediaData {
     public string description;
     public string coverArt;
     public Texture2D coverArtTexture;
-    public string imdbID;
-    public string tvdbID;
-    public string tmdbID;
+    // public string imdbID;
+    // public string tvdbID;
+    // public string tmdbID;
+    public uint year;
+    public uint duration;
+    public long fileSize;
 
     public bool UpdateMediaData() {
         // requires imdbID, tvdbID, or tmdbID
