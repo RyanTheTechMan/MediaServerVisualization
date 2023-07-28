@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
     public List<GameObject> mediaTypes;
-    public MediaSource mediaSource;
+    public MediaDomain mediaDomain;
 
     // Start is called before the first frame update
     void Start()
@@ -30,20 +30,24 @@ public class GameManager : MonoBehaviour {
         //     media.GetComponent<DVDCase>().mediaData.UpdateMediaData();
         // }
 
-        // while (mediaSource.GetToken() == null) {
+        // while (mediaDomain.GetToken() == null) {
             // get user to login, show login window
-
             if (true) {
                 // assume plex was selected
-                mediaSource = new Plex(this);
-                StartCoroutine(((Plex)mediaSource).GeneratePin((id, code) => {
-                    Debug.Log("ID: " + id + ", Code: " + code);
-                    Debug.Log("Go To: " + ((Plex)mediaSource).GetPinUrl(id));
-                }));
+                StartCoroutine(DisplayPlex());
+
             }
+
             // }
 
         CreatePile(0, new Vector3(0, 5, 0));
+    }
+
+    private IEnumerator DisplayPlex() {
+        mediaDomain = new PlexSetup(this);
+        PlexSetup plexSetup = (PlexSetup)mediaDomain;
+
+        yield return null;
     }
 
     public void CreatePile(int mediaType, Vector3 position) {
