@@ -49,6 +49,8 @@ public class PlexLibrary {
                         }
                     }
 
+                    Debug.Log(plexServer.connectionURL + (string)mediaItem["thumb"] + ".jpg");
+
                     mediaDataList.Add(new PlexMediaData {
                         title = (string)(mediaItem["title"] ?? "N/A"),
                         description = (string)(mediaItem["summary"] ?? "N/A"),
@@ -56,6 +58,9 @@ public class PlexLibrary {
                         year = (uint)(mediaItem["year"] ?? 0),
                         duration = (uint)(mediaItem["duration"] ?? 0),
                         fileSize = totalSize,
+                        coverArtURI = CreateResizedImageUrl(plexServer.connectionURL,(string)mediaItem["thumb"]),
+                        backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURL,(string)mediaItem["art"]),
+                        mediaDomain = plexServer.plexSetup,
                     });
                 }
 
@@ -66,7 +71,10 @@ public class PlexLibrary {
         }
     }
 
-
+    private static string CreateResizedImageUrl(string baseUrl, string imageUri, int width = 4000, int height = 4000)
+    {
+        return $"{baseUrl}/photo/:/transcode?width={width}&height={height}&minSize=1&upscale=0&url={imageUri}";
+    }
 
     public enum Type {
         UNKNOWN,

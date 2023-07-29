@@ -1,10 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour {
+
     public List<GameObject> mediaTypes;
     public MediaDomain mediaDomain;
 
@@ -18,6 +21,7 @@ public class GameManager : MonoBehaviour {
     }
 
     private IEnumerator CreatePile(int mediaType, Vector3 position) {
+        List<DVDCase> dvdCases = new();
         for (int i = 0; i < mediaDomain.mediaItems.Length; i++) {
             Vector3 posOffset = new Vector3(Random.Range(-8f, 8f), Random.Range(0f, 5f), Random.Range(-8f, 8f));
             Vector3 velOffset = new Vector3(Random.Range(-3f, 3f), Random.Range(0f, 3f), Random.Range(-3f, 3f));
@@ -28,10 +32,17 @@ public class GameManager : MonoBehaviour {
 
             DVDCase newCase = newObject.GetComponent<DVDCase>();
             newCase.mediaData = mediaDomain.mediaItems[i];
-
-            newCase.UpdateArt(); // TODO: should be done after generating the pile for performance reasons
+            dvdCases.Add(newCase);
 
             yield return new WaitForSeconds(1f/100f);
+        }
+
+
+        // TODO: This should not be done here, maybe make MediaData a mono behaviour and have DVDCase inherit from it??
+        yield return new WaitForSeconds(10f); // Wait 10 seconds (timeout of art) before updating art
+
+        foreach (DVDCase mediaItem in dvdCases) {
+            mediaItem.UpdateArt();
         }
     }
 
@@ -104,6 +115,10 @@ public class GameManager : MonoBehaviour {
         while (mediaDomain.mediaItems.Length == 0) {
             Debug.Log("Waiting for media to be found...");
             yield return new WaitForSeconds(2);
+        }
+
+        foreach (MediaData mediaData in mediaDomain.mediaItems) {
+            mediaData.UpdateMediaArt();
         }
 
         StartCoroutine(CreatePile(0, new Vector3(0, 5, 0)));
