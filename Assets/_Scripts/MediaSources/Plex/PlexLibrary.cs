@@ -13,7 +13,6 @@ public class PlexLibrary {
     public string title => (string)libraryData["title"];
     public Type type;
     public string key => (string)libraryData["key"];
-    public List<PlexMediaData> mediaItems = new();
     public uint mediaCount => (uint)mediaData["MediaContainer"]?["size"]; // Will always be 0 if mediaData is null
 
     public PlexLibrary(PlexServer plexServer, JObject libraryData) {
@@ -25,14 +24,9 @@ public class PlexLibrary {
             "show" => Type.SHOW,
             _ => Type.UNKNOWN
         };
-
-        plexServer.plexSetup.monoBehaviour.StartCoroutine(GetItems(response => {
-            mediaItems = response;
-            Debug.Log("Got " + mediaItems.Count + " items in library " + title + " (" + plexServer.displayName + ")");
-        }));
     }
 
-    private IEnumerator GetItems(Action<List<PlexMediaData>> callback) {
+    public IEnumerator GetItems(Action<PlexMediaData[]> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get(plexServer.connectionURL + "/library/sections/" + key + "/all")) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Token", plexServer.accessToken);
@@ -50,12 +44,8 @@ public class PlexLibrary {
                     long totalSize = 0;
                     if (mediaItem["Media"] is JArray mediaArray) {
                         foreach (JObject media in mediaArray) {
-                            JArray partArray = media["Part"] as JArray;
-                            if (partArray != null) {
-                                foreach (JObject part in partArray) {
-                                    totalSize += (long)part["size"];
-                                }
-                            }
+                            if (media["Part"] is not JArray partArray) continue;
+                            totalSize += partArray.Cast<JObject>().Sum(part => (long)part["size"]);
                         }
                     }
 
@@ -69,7 +59,7 @@ public class PlexLibrary {
                     });
                 }
 
-                callback(mediaDataList);
+                callback(mediaDataList.ToArray());
             } else {
                 Debug.LogError("Failed to get libraries items for " + title + " (" + plexServer.displayName + "): " + request.error);
             }

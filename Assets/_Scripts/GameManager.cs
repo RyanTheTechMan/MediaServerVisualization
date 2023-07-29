@@ -1,63 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
     public List<GameObject> mediaTypes;
     public MediaDomain mediaDomain;
 
-    // Start is called before the first frame update
-    void Start()
+    public Button plexButton;
+    public TMP_Dropdown plexServerDropdown;
+    public TMP_Dropdown plexLibraryDropdown;
+    public Button doneButton;
+
+    private void Start()
     {
-        // In this project, we will make a way to create a visualization of DVD cases. These cases will be shown in a library looking scene where you can walk up to a case and see the cover art and information about the movie.
-        // You will be able to walk around the library and see all the cases. You will also be able to pick up a case and put it back down. The case will be able to be picked up and put down anywhere in the library.
-        // The case will also be able to be put back in the same spot it was picked up from.
-
-        // GameObject[] mediaObject = new GameObject[10];
-        // for (int i = 0; i < mediaObject.Length; i++)
-        // {
-        //     GameObject newObject = Instantiate(mediaTypes[0]);
-        //     newObject.transform.position = new Vector3(i, 2, 0);
-        //     mediaObject[i] = newObject;
-        // }
-        //
-        // foreach (GameObject media in mediaObject)
-        // {
-        //     media.GetComponent<DVDCase>().mediaData.title = "DVD Case " + media.transform.position.x;
-        //     media.GetComponent<DVDCase>().mediaData.description = "This is a DVD case.";
-        //     media.GetComponent<DVDCase>().mediaData.coverArt = "https://cdn.discordapp.com/attachments/749653590326378499/1134322123008127096/3071240_sa.png";
-        //
-        //     media.GetComponent<DVDCase>().mediaData.UpdateMediaData();
-        // }
-
-        // while (mediaDomain.GetToken() == null) {
-            // get user to login, show login window
-            if (true) {
-                // assume plex was selected
-                StartCoroutine(DisplayPlex());
-
-            }
-
-            // }
-
-        CreatePile(0, new Vector3(0, 5, 0));
     }
 
-    private IEnumerator DisplayPlex() {
-        mediaDomain = new PlexSetup(this);
-        PlexSetup plexSetup = (PlexSetup)mediaDomain;
-
-        yield return null;
-    }
-
-    public void CreatePile(int mediaType, Vector3 position) {
-
-        MediaData mediaData = new MediaData();
-        mediaData.title = "DVD Case";
-        mediaData.description = "This is a DVD case.";
-        // mediaData.coverArt = "https://cdn.discordapp.com/attachments/749653590326378499/1134322123008127096/3071240_sa.png";
-
-        for (int i = 0; i < 500; i++) {
+    private IEnumerator CreatePile(int mediaType, Vector3 position) {
+        for (int i = 0; i < mediaDomain.mediaItems.Length; i++) {
             Vector3 posOffset = new Vector3(Random.Range(-8f, 8f), Random.Range(0f, 5f), Random.Range(-8f, 8f));
             Vector3 velOffset = new Vector3(Random.Range(-3f, 3f), Random.Range(0f, 3f), Random.Range(-3f, 3f));
 
@@ -66,11 +27,85 @@ public class GameManager : MonoBehaviour {
             newObject.GetComponent<Rigidbody>().velocity = velOffset;
 
             DVDCase newCase = newObject.GetComponent<DVDCase>();
-            newCase.mediaData = mediaData;
+            newCase.mediaData = mediaDomain.mediaItems[i];
 
-            if (i == 0) {
-                newCase.UpdateVisuals();
-            }
+            newCase.UpdateArt(); // TODO: should be done after generating the pile for performance reasons
+
+            yield return new WaitForSeconds(1f/100f);
         }
+    }
+
+    public void OnPlexButtonClicked() {
+        mediaDomain = new PlexSetup(this);
+        StartCoroutine(SetupPlexServerList());
+}
+
+    private IEnumerator SetupPlexServerList() {
+        PlexSetup plexSetup = (PlexSetup)mediaDomain;
+        while(!plexSetup.IsAPIReady()) {
+            Debug.Log("Waiting for API to be ready...");
+            yield return new WaitForSeconds(2);
+        }
+
+        Debug.Log("API is ready!");
+
+        plexSetup.UpdateServerList();
+
+        while (plexSetup.plexServers.Count == 0) {
+            Debug.Log("Waiting for servers to be found...");
+            yield return new WaitForSeconds(2);
+        }
+
+        plexServerDropdown.ClearOptions();
+        plexServerDropdown.AddOptions(new List<string> { "Select a server..." });
+        plexServerDropdown.AddOptions(plexSetup.plexServers.ConvertAll(server => server.displayName));
+
+        plexSetup.selectedServer = null;
+
+    }
+
+    public void OnPlexServerDropdownChanged() {
+        PlexSetup plexSetup = (PlexSetup)mediaDomain;
+        if (plexServerDropdown.value == 0) return;
+        plexSetup.selectedServer = plexSetup.plexServers[plexServerDropdown.value-1];
+
+        StartCoroutine(SetupPlexLibraryList());
+    }
+
+    private IEnumerator SetupPlexLibraryList() {
+        PlexSetup plexSetup = (PlexSetup)mediaDomain;
+
+        while (plexSetup.plexLibraries.Count == 0) {
+            Debug.Log("Waiting for sections to be found...");
+            yield return new WaitForSeconds(2);
+        }
+
+        plexLibraryDropdown.ClearOptions();
+        plexLibraryDropdown.AddOptions(new List<string> { "Select a library..." });
+        plexLibraryDropdown.AddOptions(plexSetup.plexLibraries.ConvertAll(section => section.title));
+
+        plexSetup.selectedLibrary = null;
+    }
+
+    public void OnPlexLibraryDropdownChanged() {
+        PlexSetup plexSetup = (PlexSetup)mediaDomain;
+        if (plexLibraryDropdown.value == 0) return;
+        plexSetup.selectedLibrary = plexSetup.plexLibraries[plexLibraryDropdown.value-1];
+    }
+
+    public void OnDoneButtonClicked() {
+        PlexSetup plexSetup = (PlexSetup)mediaDomain;
+        plexSetup.UpdateMediaList();
+        StartCoroutine(DisplayMediaList());
+
+    }
+
+    private IEnumerator DisplayMediaList() {
+        while (mediaDomain.mediaItems.Length == 0) {
+            Debug.Log("Waiting for media to be found...");
+            yield return new WaitForSeconds(2);
+        }
+
+        StartCoroutine(CreatePile(0, new Vector3(0, 5, 0)));
     }
 }

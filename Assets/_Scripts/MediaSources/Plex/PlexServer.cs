@@ -23,22 +23,18 @@ public class PlexServer {
 
         JArray connections = JArray.Parse(serverData["connections"].ToString());
         foreach (JObject connection in connections) {
-            Debug.Log("got connection: " + connection);
+            // Debug.Log("got connection: " + connection);
             if (!(bool)connection["local"]) { // TODO: Should use local if available, otherwise, should fallback to remote.
-                Debug.Log("found remote connection");
+                // Debug.Log("found remote connection");
                 connectionURL = (string)connection["uri"];
                 break; // TODO: Should test connection before breaking. If connection fails, should try next connection.
             }
             else {
-                Debug.Log("found local connection");
+                // Debug.Log("found local connection");
             }
         }
 
         Debug.LogWarning("Server connection info: " + displayName);
-
-        plexSetup.monoBehaviour.StartCoroutine(GetLibraries(response => { // TODO: Move to where selecting Library
-            plexLibraries = response;
-        }));
     }
 
     public IEnumerator GetLibraries(Action<List<PlexLibrary>> callback) {

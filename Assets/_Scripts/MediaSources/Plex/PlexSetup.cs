@@ -12,9 +12,47 @@ using UnityEngine.Networking;
 public class PlexSetup : MediaDomain {
     public const string productName = "Media Server Visualizer";
     internal readonly string clientIdentifier;
-    internal List<PlexServer> plexDevices;
 
     internal string authToken;
+
+    internal List<PlexServer> plexServers = new();
+    internal List<PlexLibrary> plexLibraries => selectedServer.plexLibraries;
+
+    private int selectedServerIndex = -1;
+    private int selectedLibraryIndex = -1;
+
+    public PlexServer selectedServer {
+        get {
+            if (selectedServerIndex < 0 || selectedServerIndex >= plexServers.Count) {
+                return null;
+            }
+            return plexServers[selectedServerIndex];
+        }
+        set {
+            if (value == null) {
+                selectedServerIndex = -1;
+                return;
+            }
+            selectedServerIndex = plexServers.IndexOf(value);
+            UpdateLibraryList();
+        }
+    }
+
+    public PlexLibrary selectedLibrary {
+        get {
+            if (selectedLibraryIndex < 0 || selectedLibraryIndex >= plexLibraries.Count) {
+                return null;
+            }
+            return plexLibraries[selectedLibraryIndex];
+        }
+        set {
+            if (value == null) {
+                selectedLibraryIndex = -1;
+                return;
+            }
+            selectedLibraryIndex = plexLibraries.IndexOf(value);
+        }
+    }
 
     public PlexSetup(MonoBehaviour monoBehaviour) : base(monoBehaviour) {
         if (PlayerPrefs.HasKey("plexClientIdentifier")) {
@@ -41,23 +79,6 @@ public class PlexSetup : MediaDomain {
         else {
             monoBehaviour.StartCoroutine(GenerateAndCheckPin());
         }
-
-        monoBehaviour.StartCoroutine(SetupDevices());
-    }
-
-    private IEnumerator SetupDevices() {
-        while(!IsAPIReady()) {
-            Debug.Log("Waiting for API to be ready...");
-            yield return new WaitForSeconds(2);
-        }
-
-        Debug.Log("API is ready!");
-
-        Debug.Log("Getting plex servers...");
-        monoBehaviour.StartCoroutine(GetServers(response => {
-            plexDevices = response;
-            Debug.Log("Got " + plexDevices.Count + " plex servers.");
-        }));
     }
 
     public IEnumerator CheckAccessTokenValidity(string userToken, Action<bool> callback)
@@ -150,7 +171,6 @@ public class PlexSetup : MediaDomain {
         }
     }
 
-    // USER PROMPT AND CHECK
     public IEnumerator GenerateAndCheckPin() {
         // Generate a pin
         yield return GeneratePin((id, code) => {
@@ -165,10 +185,8 @@ public class PlexSetup : MediaDomain {
     }
 
     public IEnumerator CheckPin(string pinId, string pinCode) {
-        // Wait for a few seconds for the user to authorize the application
         yield return new WaitForSeconds(10);
 
-        // Check the pin
         yield return CheckPin(pinId, pinCode, (authToken) => {
             if (authToken != null) {
                 Debug.Log($"Received auth token: {StringManipulation.ReplaceLastXPercentOfString(authToken, 0.5, '*')}");
@@ -200,7 +218,7 @@ public class PlexSetup : MediaDomain {
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
-                Debug.Log(request.downloadHandler.text);
+                // Debug.Log(request.downloadHandler.text);
 
                 JArray jDevices = JArray.Parse(request.downloadHandler.text);
 
@@ -218,7 +236,30 @@ public class PlexSetup : MediaDomain {
         }
     }
 
+    public void UpdateServerList() {
+        if (!IsAPIReady()) return;
+        Debug.Log("Getting plex servers...");
+        monoBehaviour.StartCoroutine(GetServers(response => {
+            plexServers = response;
+            Debug.Log("Got " + plexServers.Count + " plex servers.");
+        }));
+    }
 
+    public void UpdateLibraryList() { // This is automatically called when selectedServer is changed.
+        if (selectedServer == null) return;
+        Debug.Log("Getting plex libraries...");
+        monoBehaviour.StartCoroutine(selectedServer.GetLibraries(response => {
+            selectedServer.plexLibraries = response;
+            Debug.Log("Got " + selectedServer.plexLibraries.Count + " plex libraries.");
+        }));
+    }
 
-
+    public void UpdateMediaList() { // This is automatically called when selectedLibrary is changed.
+        if (selectedLibrary == null) return;
+        Debug.Log("Getting plex media...");
+        monoBehaviour.StartCoroutine(selectedLibrary.GetItems(response => {
+            mediaItems = response;
+            Debug.Log("Got " + mediaItems.Length + " items in library " + selectedLibrary.title + " (" + selectedServer.displayName + ")");
+        }));
+    }
 }

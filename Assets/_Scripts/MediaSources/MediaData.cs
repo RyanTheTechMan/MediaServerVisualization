@@ -54,15 +54,5 @@ public class MediaData {
             coverArtTexture = texture;
         }));
     }
-
-    public bool StoreMediaData() {
-        // Save MediaData to a file here. Maybe use MySQLite?
-        return true;
-    }
-
-    public static MediaData LoadMediaData() {
-        // Load MediaData from a file here. Maybe use MySQLite?
-        return null;
-    }
 }
 
