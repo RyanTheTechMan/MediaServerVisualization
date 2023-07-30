@@ -7,7 +7,7 @@ public class PlexMediaData : MediaData {
     public uint plexID; // a.k.a. ratingKey
 
     public override IEnumerator UpdateMainArtTexture() {
-        Debug.Log("UpdateMainArtTexture: " + coverArtURI);
+        // Debug.Log("UpdateMainArtTexture: " + coverArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverArtURI)) {
             request.SetRequestHeader("X-Plex-Token", ((PlexSetup)mediaDomain).selectedServer.accessToken);
             request.timeout = 10;
@@ -15,7 +15,7 @@ public class PlexMediaData : MediaData {
 
             if (request.result == UnityWebRequest.Result.Success) {
                 coverArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-                Debug.Log("UpdateMainArtTexture: " + coverArtTexture.width + "x" + coverArtTexture.height);
+                // Debug.Log("UpdateMainArtTexture: " + coverArtTexture.width + "x" + coverArtTexture.height);
             }
             else if (request.responseCode == 404) {
                 Debug.LogWarning("No main art found for " + title);

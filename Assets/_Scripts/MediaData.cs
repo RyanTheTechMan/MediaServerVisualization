@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class MediaData : MonoBehaviour {
+public class MediaData {
     public string title;
     public string description;
     public uint year;

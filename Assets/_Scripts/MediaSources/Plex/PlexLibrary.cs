@@ -27,14 +27,14 @@ public class PlexLibrary {
     }
 
     public IEnumerator GetItems(Action<PlexMediaData[]> callback) {
-        using (UnityWebRequest request = UnityWebRequest.Get(plexServer.connectionURL + "/library/sections/" + key + "/all")) {
+        using (UnityWebRequest request = UnityWebRequest.Get(plexServer.connectionURI + "/library/sections/" + key + "/all")) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Token", plexServer.accessToken);
 
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
-                Debug.Log(request.downloadHandler.text);
+                // Debug.Log(request.downloadHandler.text);
 
                 List<PlexMediaData> mediaDataList = new();
 
@@ -49,7 +49,7 @@ public class PlexLibrary {
                         }
                     }
 
-                    Debug.Log(plexServer.connectionURL + (string)mediaItem["thumb"] + ".jpg");
+                    Debug.Log(plexServer.connectionURI + (string)mediaItem["thumb"] + ".jpg");
 
                     mediaDataList.Add(new PlexMediaData {
                         title = (string)(mediaItem["title"] ?? "N/A"),
@@ -58,8 +58,8 @@ public class PlexLibrary {
                         year = (uint)(mediaItem["year"] ?? 0),
                         duration = (uint)(mediaItem["duration"] ?? 0),
                         fileSize = totalSize,
-                        coverArtURI = CreateResizedImageUrl(plexServer.connectionURL,(string)mediaItem["thumb"]),
-                        backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURL,(string)mediaItem["art"]),
+                        coverArtURI = CreateResizedImageUrl(plexServer.connectionURI,(string)mediaItem["thumb"]),
+                        backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURI,(string)mediaItem["art"]),
                         mediaDomain = plexServer.plexSetup,
                     });
                 }

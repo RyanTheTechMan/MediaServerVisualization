@@ -1,3 +1,4 @@
+// ReSharper disable once RedundantUsingDirective
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,8 +22,10 @@ public class GameManager : MonoBehaviour {
     }
 
     private IEnumerator CreatePile(int mediaTypeIndex, Vector3 position) {
+        const int spawnGroupSize = 10;
+        int groupSize = 0;
         List<MediaType> mediaObjects = new();
-        for (int i = 0; i < mediaDomain.mediaItems.Length; i++) {
+        foreach (MediaData mediaItem in mediaDomain.mediaItems) {
             Vector3 posOffset = new Vector3(Random.Range(-8f, 8f), Random.Range(0f, 5f), Random.Range(-8f, 8f));
             Vector3 velOffset = new Vector3(Random.Range(-3f, 3f), Random.Range(0f, 3f), Random.Range(-3f, 3f));
 
@@ -30,14 +33,18 @@ public class GameManager : MonoBehaviour {
             newObject.transform.position = position + posOffset;
             newObject.GetComponent<Rigidbody>().velocity = velOffset;
 
-            newObject.mediaData = mediaDomain.mediaItems[i];
+            newObject.mediaData = mediaItem;
             mediaObjects.Add(newObject);
 
-            yield return new WaitForSeconds(1f/100f);
+            if (groupSize >= spawnGroupSize) {
+                groupSize = 0;
+                yield return new WaitForSeconds(1f/100f);
+            }
+            groupSize++;
         }
 
 
-        // TODO: This should be done as you get close to the art in a queued fashion. Not all at once.
+        // TODO: This should be done as you get close to the art in a queued fashion. Not all at once, let alone, sequentially.
         foreach (MediaType mediaObject in mediaObjects) {
             StartCoroutine(mediaObject.UpdateArt());
             yield return new WaitForSeconds(0.5f);
@@ -67,10 +74,18 @@ public class GameManager : MonoBehaviour {
 
         plexServerDropdown.ClearOptions();
         plexServerDropdown.AddOptions(new List<string> { "Select a server..." });
-        plexServerDropdown.AddOptions(plexSetup.plexServers.ConvertAll(server => server.displayName));
 
         plexSetup.selectedServer = null;
 
+        foreach (PlexServer server in plexSetup.plexServers) {
+            StartCoroutine(TestConnections(server));
+        }
+    }
+
+    private IEnumerator TestConnections(PlexServer server)
+    {
+        yield return new WaitWhile(() => !server.connectionReady);
+        plexServerDropdown.AddOptions(new List<string> { server.displayName });
     }
 
     public void OnPlexServerDropdownChanged() {
