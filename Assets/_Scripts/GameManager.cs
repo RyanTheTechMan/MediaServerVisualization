@@ -67,10 +67,7 @@ public class GameManager : MonoBehaviour {
 
         plexSetup.UpdateServerList();
 
-        while (plexSetup.plexServers.Count == 0) {
-            Debug.Log("Waiting for servers to be found...");
-            yield return new WaitForSeconds(2);
-        }
+        yield return new WaitUntil(() => plexSetup.plexServers.Find(server => server.connectionReady) != null);
 
         plexServerDropdown.ClearOptions();
         plexServerDropdown.AddOptions(new List<string> { "Select a server..." });
@@ -99,10 +96,7 @@ public class GameManager : MonoBehaviour {
     private IEnumerator SetupPlexLibraryList() {
         PlexSetup plexSetup = (PlexSetup)mediaDomain;
 
-        while (plexSetup.plexLibraries.Count == 0) {
-            Debug.Log("Waiting for sections to be found...");
-            yield return new WaitForSeconds(2);
-        }
+        yield return new WaitUntil(() => plexSetup.plexLibraries.Count > 0);
 
         plexLibraryDropdown.ClearOptions();
         plexLibraryDropdown.AddOptions(new List<string> { "Select a library..." });
