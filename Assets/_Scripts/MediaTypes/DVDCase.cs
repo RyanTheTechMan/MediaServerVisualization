@@ -1,39 +1,40 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 
-public class DVDCase : MonoBehaviour {
+public class DVDCase : MediaType {
     public GameObject caseLeft;
     public GameObject caseRight;
-    public Renderer coverRenderer;
-    public TMP_Text coverText;
     public TMP_Text spineText;
 
-    public MediaData mediaData = new MediaData();
+    public override void Start() {
+        base.Start();
 
-    void Start() {
-        spineText.text = mediaData.title;
-        coverText.text = mediaData.title;
     }
+
+    protected override void SetTitleText(string text) {
+        base.SetTitleText(text);
+        spineText.text = text;
+    }
+
 
     void Update() {
+
     }
 
-    public void UpdateArt() {
-        // mediaData.GetCoverArtTexture(this);
+    public override IEnumerator UpdateArt() {
+        yield return base.UpdateArt();
 
         if (mediaData.coverArtTexture != null) {
-            coverRenderer.materials[0].mainTexture = mediaData.coverArtTexture;
-            coverText.gameObject.SetActive(false);
-            coverRenderer.gameObject.SetActive(true);
+            mainArtRenderer.materials[0].mainTexture = mediaData.coverArtTexture;
+            titleText.gameObject.SetActive(false);
+            mainArtRenderer.gameObject.SetActive(true);
         }
         else {
-            coverText.gameObject.SetActive(true);
-            coverRenderer.gameObject.SetActive(false);
+            titleText.gameObject.SetActive(true);
+            mainArtRenderer.gameObject.SetActive(false);
         }
-
     }
+
+
 }

@@ -6,8 +6,8 @@ using UnityEngine.Networking;
 public class PlexMediaData : MediaData {
     public uint plexID; // a.k.a. ratingKey
 
-    public override IEnumerator UpdateCoverArtTexture() {
-        Debug.Log("UpdateCoverArtTexture: " + coverArtURI);
+    public override IEnumerator UpdateMainArtTexture() {
+        Debug.Log("UpdateMainArtTexture: " + coverArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverArtURI)) {
             request.SetRequestHeader("X-Plex-Token", ((PlexSetup)mediaDomain).selectedServer.accessToken);
             request.timeout = 10;
@@ -15,7 +15,10 @@ public class PlexMediaData : MediaData {
 
             if (request.result == UnityWebRequest.Result.Success) {
                 coverArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-                Debug.Log("UpdateCoverArtTexture: " + coverArtTexture.width + "x" + coverArtTexture.height);
+                Debug.Log("UpdateMainArtTexture: " + coverArtTexture.width + "x" + coverArtTexture.height);
+            }
+            else if (request.responseCode == 404) {
+                Debug.LogWarning("No main art found for " + title);
             }
             else {
                 Debug.LogError("Failed to download cover art: " + request.error);
@@ -23,8 +26,8 @@ public class PlexMediaData : MediaData {
         }
     }
 
-    public override IEnumerator UpdateBackgroundTexture() {
-        Debug.Log("UpdateBackgroundTexture: " + backgroundArtURI);
+    public override IEnumerator UpdateBackgroundArtTexture() {
+        Debug.Log("UpdateBackgroundArtTexture: " + backgroundArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(backgroundArtURI)) {
             request.SetRequestHeader("X-Plex-Token", ((PlexSetup)mediaDomain).selectedServer.accessToken);
             request.timeout = 10;
@@ -32,7 +35,10 @@ public class PlexMediaData : MediaData {
 
             if (request.result == UnityWebRequest.Result.Success) {
                 backgroundArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-                Debug.Log("UpdateBackgroundTexture: " + backgroundArtTexture.width + "x" + backgroundArtTexture.height);
+                Debug.Log("UpdateBackgroundArtTexture: " + backgroundArtTexture.width + "x" + backgroundArtTexture.height);
+            }
+            else if (request.responseCode == 404) {
+                Debug.LogWarning("No background art found for " + title);
             }
             else {
                 Debug.LogError("Failed to download cover art: " + request.error);

@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour {
 
-    public List<GameObject> mediaTypes;
+    public List<MediaType> mediaTypes;
     public MediaDomain mediaDomain;
 
     public Button plexButton;
@@ -20,29 +20,27 @@ public class GameManager : MonoBehaviour {
     {
     }
 
-    private IEnumerator CreatePile(int mediaType, Vector3 position) {
-        List<DVDCase> dvdCases = new();
+    private IEnumerator CreatePile(int mediaTypeIndex, Vector3 position) {
+        List<MediaType> mediaObjects = new();
         for (int i = 0; i < mediaDomain.mediaItems.Length; i++) {
             Vector3 posOffset = new Vector3(Random.Range(-8f, 8f), Random.Range(0f, 5f), Random.Range(-8f, 8f));
             Vector3 velOffset = new Vector3(Random.Range(-3f, 3f), Random.Range(0f, 3f), Random.Range(-3f, 3f));
 
-            GameObject newObject = Instantiate(mediaTypes[mediaType]);
+            MediaType newObject = Instantiate(mediaTypes[mediaTypeIndex].gameObject).GetComponent<MediaType>();
             newObject.transform.position = position + posOffset;
             newObject.GetComponent<Rigidbody>().velocity = velOffset;
 
-            DVDCase newCase = newObject.GetComponent<DVDCase>();
-            newCase.mediaData = mediaDomain.mediaItems[i];
-            dvdCases.Add(newCase);
+            newObject.mediaData = mediaDomain.mediaItems[i];
+            mediaObjects.Add(newObject);
 
             yield return new WaitForSeconds(1f/100f);
         }
 
 
-        // TODO: This should not be done here, maybe make MediaData a mono behaviour and have DVDCase inherit from it??
-        yield return new WaitForSeconds(10f); // Wait 10 seconds (timeout of art) before updating art
-
-        foreach (DVDCase mediaItem in dvdCases) {
-            mediaItem.UpdateArt();
+        // TODO: This should be done as you get close to the art in a queued fashion. Not all at once.
+        foreach (MediaType mediaObject in mediaObjects) {
+            StartCoroutine(mediaObject.UpdateArt());
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
@@ -106,19 +104,16 @@ public class GameManager : MonoBehaviour {
 
     public void OnDoneButtonClicked() {
         PlexSetup plexSetup = (PlexSetup)mediaDomain;
+        mediaDomain.mediaItems = null;
         plexSetup.UpdateMediaList();
         StartCoroutine(DisplayMediaList());
 
     }
 
     private IEnumerator DisplayMediaList() {
-        while (mediaDomain.mediaItems.Length == 0) {
+        while (mediaDomain.mediaItems == null) {
             Debug.Log("Waiting for media to be found...");
             yield return new WaitForSeconds(2);
-        }
-
-        foreach (MediaData mediaData in mediaDomain.mediaItems) {
-            mediaData.UpdateMediaArt();
         }
 
         StartCoroutine(CreatePile(0, new Vector3(0, 5, 0)));

@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class MediaData {
+public class MediaData : MonoBehaviour {
     public string title;
     public string description;
     public uint year;
@@ -17,12 +17,7 @@ public class MediaData {
 
     public MediaDomain mediaDomain;
 
-    public void UpdateMediaArt() {
-        mediaDomain.monoBehaviour.StartCoroutine(UpdateCoverArtTexture());
-        mediaDomain.monoBehaviour.StartCoroutine(UpdateBackgroundTexture());
-    }
-
-    public virtual IEnumerator UpdateCoverArtTexture() {
+    public virtual IEnumerator UpdateMainArtTexture() {
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverArtURI)) {
             request.timeout = 10;
             yield return request.SendWebRequest();
@@ -30,19 +25,25 @@ public class MediaData {
             if (request.result == UnityWebRequest.Result.Success) {
                 coverArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
             }
+            else if (request.responseCode == 404) {
+                Debug.LogWarning("No main art found for " + title);
+            }
             else {
                 Debug.LogError("Failed to download cover art: " + request.error);
             }
         }
     }
 
-    public virtual IEnumerator UpdateBackgroundTexture() {
+    public virtual IEnumerator UpdateBackgroundArtTexture() {
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(backgroundArtURI)) {
             request.timeout = 10;
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
                 backgroundArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+            }
+            else if (request.responseCode == 404) {
+                Debug.LogWarning("No background art found for " + title);
             }
             else {
                 Debug.LogError("Failed to download cover art: " + request.error);
