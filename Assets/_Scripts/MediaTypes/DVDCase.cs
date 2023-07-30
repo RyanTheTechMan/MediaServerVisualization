@@ -34,6 +34,10 @@ public class DVDCase : MediaType {
             titleText.gameObject.SetActive(true);
             mainArtRenderer.gameObject.SetActive(false);
         }
+
+        if (mediaData.backgroundArtTexture != null) {
+            backgroundArtRenderer.materials[0].mainTexture = mediaData.backgroundArtTexture;
+        }
     }
 
 
