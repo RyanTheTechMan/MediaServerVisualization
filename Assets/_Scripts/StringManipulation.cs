@@ -15,4 +15,8 @@ public class StringManipulation {
 
         return new string(arr);
     }
+    
+    public static string ObfuscateString(string original) {
+        return ReplaceLastXPercentOfString(original, 0.70, '*');
+    }
 }

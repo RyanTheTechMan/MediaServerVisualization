@@ -21,14 +21,14 @@ public class PlexServer {
     public PlexServer(PlexSetup plexSetup, JObject serverData) {
         this.plexSetup = plexSetup;
         this.serverData = serverData;
-        plexSetup.monoBehaviour.StartCoroutine(GetConnections());
+        plexSetup.gameManager.StartCoroutine(GetConnections());
     }
 
     private IEnumerator GetConnections() {
         JArray connections = JArray.Parse(serverData["connections"].ToString());
         List<Coroutine> coroutines = new();
         foreach (JObject connection in connections) {
-            coroutines.Add(plexSetup.monoBehaviour.StartCoroutine(TestConnection((bool)connection["local"], (string)connection["uri"])));
+            coroutines.Add(plexSetup.gameManager.StartCoroutine(TestConnection((bool)connection["local"], (string)connection["uri"])));
         }
         foreach (Coroutine coroutine in coroutines) { yield return coroutine; }
         connectionReady = true;

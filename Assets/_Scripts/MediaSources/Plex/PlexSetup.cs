@@ -10,8 +10,84 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class PlexSetup : MediaDomain {
+    
+    public override IEnumerator SetupServerList() {
+        Debug.Log("Would have setup plex server list here.");
+        yield return null;
+    }
+    
+    public override IEnumerator AddAccount() {
+        if (PlayerPrefs.HasKey("plexClientIdentifier")) {
+            clientIdentifier = PlayerPrefs.GetString("plexClientIdentifier");
+        }
+        else {
+            clientIdentifier = "MSV-" + Guid.NewGuid();
+            PlayerPrefs.SetString("plexClientIdentifier", clientIdentifier);
+        }
+        if (PlayerPrefs.HasKey("plexAuthToken")) {
+            authToken = PlayerPrefs.GetString("plexAuthToken");
+            gameManager.StartCoroutine(CheckAccessTokenValidity(authToken, (valid) => {
+                if (!valid) {
+                    Debug.LogWarning("Plex access token is invalid.");
+                    authToken = null;
+                    gameManager.StartCoroutine(GenerateAndCheckPin());
+                }
+                else {
+                    Debug.Log("Plex access token is valid.");
+                    accountReady = true;
+                }
+            }));
+        }
+        else {
+            gameManager.StartCoroutine(GenerateAndCheckPin());
+        }
+        
+        yield return null;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     public const string productName = "Media Server Visualizer";
-    internal readonly string clientIdentifier;
+    internal string clientIdentifier;
 
     internal string authToken;
 
@@ -51,33 +127,6 @@ public class PlexSetup : MediaDomain {
                 return;
             }
             selectedLibraryIndex = plexLibraries.IndexOf(value);
-        }
-    }
-
-    public PlexSetup(MonoBehaviour monoBehaviour) : base(monoBehaviour) {
-        if (PlayerPrefs.HasKey("plexClientIdentifier")) {
-            clientIdentifier = PlayerPrefs.GetString("plexClientIdentifier");
-        }
-        else {
-            clientIdentifier = "MSV-" + Guid.NewGuid();
-            PlayerPrefs.SetString("plexClientIdentifier", clientIdentifier);
-        }
-        if (PlayerPrefs.HasKey("plexAuthToken")) {
-            authToken = PlayerPrefs.GetString("plexAuthToken");
-            monoBehaviour.StartCoroutine(CheckAccessTokenValidity(authToken, (valid) => {
-                if (!valid) {
-                    Debug.LogWarning("Plex access token is invalid.");
-                    authToken = null;
-                    monoBehaviour.StartCoroutine(GenerateAndCheckPin());
-                }
-                else {
-                    Debug.Log("Plex access token is valid.");
-                    apiReady = true;
-                }
-            }));
-        }
-        else {
-            monoBehaviour.StartCoroutine(GenerateAndCheckPin());
         }
     }
 
@@ -180,7 +229,7 @@ public class PlexSetup : MediaDomain {
             Application.OpenURL(GetPinUrl(code));
 
             // Start a coroutine to check the pin
-            monoBehaviour.StartCoroutine(CheckPin(id, code));
+            gameManager.StartCoroutine(CheckPin(id, code));
         });
     }
 
@@ -189,13 +238,13 @@ public class PlexSetup : MediaDomain {
 
         yield return CheckPin(pinId, pinCode, (authToken) => {
             if (authToken != null) {
-                Debug.Log($"Received auth token: {StringManipulation.ReplaceLastXPercentOfString(authToken, 0.5, '*')}");
+                Debug.Log($"Received auth token: {StringManipulation.ObfuscateString(authToken)}");
 
-                monoBehaviour.StartCoroutine(CheckAccessTokenValidity(authToken, (isValid) => {
+                gameManager.StartCoroutine(CheckAccessTokenValidity(authToken, (isValid) => {
                     if (isValid) {
                         Debug.Log("Access token is valid");
                         this.authToken = authToken;
-                        apiReady = true;
+                        accountReady = true;
                         PlayerPrefs.SetString("plexAuthToken", authToken);
                     } else {
                         Debug.LogError("Access token is invalid");
@@ -237,9 +286,9 @@ public class PlexSetup : MediaDomain {
     }
 
     public void UpdateServerList() {
-        if (!IsAPIReady()) return;
+        if (!IsAccountReady()) return;
         Debug.Log("Getting plex servers...");
-        monoBehaviour.StartCoroutine(GetServers(response => {
+        gameManager.StartCoroutine(GetServers(response => {
             plexServers = response;
             Debug.Log("Got " + plexServers.Count + " plex servers.");
         }));
@@ -248,7 +297,7 @@ public class PlexSetup : MediaDomain {
     public void UpdateLibraryList() { // This is automatically called when selectedServer is changed.
         if (selectedServer == null) return;
         Debug.Log("Getting plex libraries...");
-        monoBehaviour.StartCoroutine(selectedServer.GetLibraries(response => {
+        gameManager.StartCoroutine(selectedServer.GetLibraries(response => {
             selectedServer.plexLibraries = response;
             Debug.Log("Got " + selectedServer.plexLibraries.Count + " plex libraries.");
         }));
@@ -257,7 +306,7 @@ public class PlexSetup : MediaDomain {
     public void UpdateMediaList() { // This is automatically called when selectedLibrary is changed.
         if (selectedLibrary == null) return;
         Debug.Log("Getting plex media...");
-        monoBehaviour.StartCoroutine(selectedLibrary.GetItems(response => {
+        gameManager.StartCoroutine(selectedLibrary.GetItems(response => {
             mediaItems = response;
             Debug.Log("Got " + mediaItems.Length + " items in library " + selectedLibrary.title + " (" + selectedServer.displayName + ")");
         }));
