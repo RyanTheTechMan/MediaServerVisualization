@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour {
 
             MediaType newObject = Instantiate(mediaTypes[mediaTypeIndex].gameObject).GetComponent<MediaType>();
             newObject.transform.position = position + posOffset;
-            newObject.GetComponent<Rigidbody>().velocity = velOffset;
+            newObject.GetComponent<Rigidbody>().linearVelocity = velOffset;
 
             newObject.mediaData = mediaItem;
             mediaObjects.Add(newObject);
