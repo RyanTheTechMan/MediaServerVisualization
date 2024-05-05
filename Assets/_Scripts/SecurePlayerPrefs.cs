@@ -4,7 +4,7 @@ using System.Text;
 using System;
 
 public static class SecurePlayerPrefs {
-    private static byte[] key = Encoding.UTF8.GetBytes("your-32-byte-long-security-key-here"); // Must be 256 bits
+    private static byte[] key = Encoding.UTF8.GetBytes("2mXarfpPcjZBnl8chTHcXq7irOJUZUlp"); // Must be 256 bits
 
     public static void SetString(string key, string value) {
         var encrypted = EncryptString(value);

@@ -11,6 +11,7 @@ public abstract class MediaLibrary {
         throw new System.NotImplementedException();
     }
 }
+
 public enum LibraryType {
     UNKNOWN,
     MOVIE,

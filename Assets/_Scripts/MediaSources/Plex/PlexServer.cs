@@ -10,7 +10,7 @@ public class PlexServer : MediaServer {
     public override string name => (string)serverData["name"];
     public bool signedInUserIsOwner => (bool)serverData["owned"];
     public string connectionURI { get; private set; } = "N/A";
-    public bool isLocal { get; private set;}
+    public bool isLocal { get; private set; }
     internal string accessToken => (string)serverData["accessToken"]; // sorta like the authToken, but allows you to access the server's API
 
     public PlexServer(PlexAccount account, JObject serverData) {
@@ -21,7 +21,7 @@ public class PlexServer : MediaServer {
 
     private IEnumerator GetConnections() {
         Status = ServerStatus.WAITING;
-        
+
         JArray connections = JArray.Parse(serverData["connections"].ToString());
         List<Coroutine> coroutines = new();
         foreach (JObject connection in connections) {
@@ -51,6 +51,7 @@ public class PlexServer : MediaServer {
                         this.connectionURI = connectionURI;
                     }
                 }
+
                 Debug.Log("Successfully got connection for '" + name + "(" + connectionURI + ")" + "': " + request.result);
             }
             else {
@@ -85,7 +86,7 @@ public class PlexServer : MediaServer {
             }
         }
     }
-    
+
     public override void UpdateLibraryList(Action<bool> callback) {
         Debug.Log("Getting plex libraries...");
         GameManager.instance.StartCoroutine(GetLibraries(response => {

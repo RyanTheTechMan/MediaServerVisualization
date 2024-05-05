@@ -5,12 +5,13 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Web;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class PlexAccount : MediaAccount {
-    private string authToken;
+    [JsonProperty] internal string AuthToken;
 
     public override void Setup(Action<bool> callback) {
         Status = AccountStatus.WAITING;
@@ -20,7 +21,7 @@ public class PlexAccount : MediaAccount {
     private IEnumerator GetServers(Action<List<PlexServer>> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get("https://plex.tv/api/v2/resources")) {
             request.SetRequestHeader("accept", "application/json");
-            request.SetRequestHeader("X-Plex-Token", authToken);
+            request.SetRequestHeader("X-Plex-Token", AuthToken);
             request.SetRequestHeader("X-Plex-Product", Constants.productName);
             request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
 
@@ -28,18 +29,18 @@ public class PlexAccount : MediaAccount {
 
             if (request.result == UnityWebRequest.Result.Success) {
                 // Debug.Log(request.downloadHandler.text);
-                
+
                 JArray jDevices = JArray.Parse(request.downloadHandler.text);
-                
+
                 // Filter out non-server devices
                 jDevices = new JArray(jDevices.Where(device => device["provides"]?.ToString() == "server"));
-                
+
                 // Create a PlexServer object for each device
                 List<PlexServer> servers = (from JObject device in jDevices select new PlexServer(this, device)).ToList();
-                
+
                 // Wait until all servers are ready or errored
                 yield return new WaitUntil(() => servers.FindAll(server => server.Status is ServerStatus.READY or ServerStatus.ERROR).Count >= jDevices.Count);
-                
+
                 Debug.Log("All plex servers are ready.");
                 callback(servers);
             }
@@ -84,7 +85,7 @@ public class PlexAccount : MediaAccount {
             }
             else {
                 Debug.LogError("Failed to generate PIN: " + request.error);
-                callback(null,null);
+                callback(null, null);
             }
         }
     }
@@ -144,7 +145,7 @@ public class PlexAccount : MediaAccount {
     /// <param name="pinId">The unique identifier for the PIN.</param>
     /// <param name="pinCode">The PIN code to check.</param>
     /// <param name="maxRetries">The maximum number of times to retry before giving up.</param>
-    private IEnumerator CheckPinAndValidateAccessToken(Action<bool> callback,string pinId, string pinCode, uint maxRetries = 20) {
+    private IEnumerator CheckPinAndValidateAccessToken(Action<bool> callback, string pinId, string pinCode, uint maxRetries = 20) {
         uint attempts = 0;
         string token = null;
 
@@ -153,31 +154,32 @@ public class PlexAccount : MediaAccount {
         while (attempts < maxRetries && string.IsNullOrEmpty(token)) {
             yield return new WaitForSeconds(6);
 
-            yield return VerifyPinAndRetrieveToken(pinId, pinCode, receivedToken => {
-                token = receivedToken;
-            });
+            yield return VerifyPinAndRetrieveToken(pinId, pinCode, receivedToken => { token = receivedToken; });
 
             attempts++;
 
             if (!string.IsNullOrEmpty(token)) {
                 Debug.Log($"Received auth token: {StringManipulation.ObfuscateString(token)}");
-                
+
                 yield return CheckAccessTokenValidity(token, isValid => {
                     if (isValid) {
                         Debug.Log("Access token is valid");
-                        authToken = token;
+                        AuthToken = token;
                         Status = AccountStatus.READY;
                         callback(true);
-                    } else {
+                    }
+                    else {
                         Debug.LogError("Access token is invalid");
                         Status = AccountStatus.ERROR;
                         callback(false);
                     }
                 });
-            } else if (attempts < maxRetries) {
+            }
+            else if (attempts < maxRetries) {
                 Debug.LogWarning("Failed to receive auth token, retrying...");
                 token = null; // Ensure token is reset for retry logic
-            } else {
+            }
+            else {
                 Debug.LogError("Failed to receive auth token after several attempts");
                 Status = AccountStatus.ERROR;
                 callback(false);
@@ -190,11 +192,37 @@ public class PlexAccount : MediaAccount {
             Debug.Log($"Generated PIN: {code}, ID: {id}");
 
             Application.OpenURL(GetPinUrl(code));
-            
-            GameManager.instance.StartCoroutine(CheckPinAndValidateAccessToken(callback,id, code));
+
+            GameManager.instance.StartCoroutine(CheckPinAndValidateAccessToken(callback, id, code));
         });
     }
-    
+
+    public override void UpdateInfo(Action<bool> callback) {
+        GameManager.instance.StartCoroutine(GetUsername((username) => {
+            Username = username;
+            callback(true);
+        }));
+    }
+
+    public IEnumerator GetUsername(Action<string> callback) {
+        using (UnityWebRequest request = UnityWebRequest.Get("https://plex.tv/api/v2/user")) {
+            request.SetRequestHeader("accept", "application/json");
+            request.SetRequestHeader("X-Plex-Token", AuthToken);
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success) {
+                //Debug.Log(request.downloadHandler.text);
+                JObject data = JObject.Parse(request.downloadHandler.text);
+                string username = (string)data["username"];
+                callback(username);
+            }
+            else {
+                Debug.LogError("Web request fail!");
+            }
+        }
+    }
+
     public override void UpdateServerList(Action<bool> callback) {
         Debug.Log("Getting plex servers...");
         GameManager.instance.StartCoroutine(GetServers(response => {

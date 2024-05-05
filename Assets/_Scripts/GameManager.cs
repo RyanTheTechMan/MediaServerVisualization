@@ -18,10 +18,12 @@ public class GameManager : MonoBehaviour {
         else {
             Destroy(this);
         }
+
+        LoadAccounts();
     }
 
     private void Start() {
-        TempFunction();
+        // TempFunction();
     }
 
     private void TempFunction() {
@@ -29,15 +31,20 @@ public class GameManager : MonoBehaviour {
 
         account.Setup((callback) => {
             Debug.Log("Account is ready.");
-
             mediaAccounts.Add(account);
-            account.UpdateServerList((result) => {
-                account.Servers.ForEach(server => Debug.Log(server.name));
-                account.Servers[0].UpdateLibraryList((result) => {
-                    account.Servers[0].Libraries.ForEach(libary => Debug.Log(libary.name));
-                    account.Servers[0].Libraries[0].UpdateMediaList((result) => { account.Servers[0].Libraries[0].MediaData.ForEach(media => Debug.Log(media.title)); });
-                });
-            });
+            account.UpdateInfo((callback) => { AccountManager.SaveAccountsData(mediaAccounts); });
         });
+    }
+
+    private void LoadAccounts() {
+        mediaAccounts = AccountManager.LoadAccountsData();
+        mediaAccounts.ForEach((account) => account.UpdateInfo((success) => {
+            if (success) {
+                Debug.Log("Successfully loaded account '" + account.Username + "' of type '" + account.GetType() + "'");
+            }
+            else {
+                Debug.LogWarning("Failed to load account '" + account.Username + "' of type '" + account.GetType() + "'");
+            }
+        }));
     }
 }
