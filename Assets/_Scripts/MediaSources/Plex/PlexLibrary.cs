@@ -75,12 +75,13 @@ public class PlexLibrary : MediaLibrary {
     private static string CreateResizedImageUrl(string baseUrl, string imageUri, int width = 4000, int height = 4000) {
         return $"{baseUrl}/photo/:/transcode?width={width}&height={height}&minSize=1&upscale=0&url={imageUri}";
     }
-    
-    public override void UpdateMediaList() {
+
+    public override void UpdateMediaList(Action<bool> callback) {
         Debug.Log("Getting plex media...");
         GameManager.instance.StartCoroutine(GetItems(response => {
             MediaData = response.ConvertAll(media => (MediaData)media);
             Debug.Log("Got " + MediaData.Count + " items in library " + name + " (" + plexServer.name + ")");
+            callback(true);
         }));
     }
 }

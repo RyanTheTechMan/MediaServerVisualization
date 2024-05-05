@@ -51,10 +51,10 @@ public class PlexServer : MediaServer {
                         this.connectionURI = connectionURI;
                     }
                 }
-                // Debug.Log("Successfully got connection for '" + name + "(" + connectionURI + ")" + "': " + request.result);
+                Debug.Log("Successfully got connection for '" + name + "(" + connectionURI + ")" + "': " + request.result);
             }
             else {
-                // Debug.LogError("Failed to get connection for '" + name + "(" + connectionURI + ")" + "': " + request.error);
+                Debug.LogError("Failed to get connection for '" + name + "(" + connectionURI + ")" + "': " + request.error);
             }
         }
     }
@@ -81,15 +81,17 @@ public class PlexServer : MediaServer {
             }
             else {
                 Debug.LogError("Failed to get libraries for '" + name + "': " + request.error);
+                Status = ServerStatus.ERROR;
             }
         }
     }
     
-    public override void UpdateLibraryList() {
+    public override void UpdateLibraryList(Action<bool> callback) {
         Debug.Log("Getting plex libraries...");
         GameManager.instance.StartCoroutine(GetLibraries(response => {
             Libraries = response.ConvertAll(library => (MediaLibrary)library);
             Debug.Log("Got " + Libraries.Count + " plex libraries.");
+            callback(true);
         }));
     }
 }

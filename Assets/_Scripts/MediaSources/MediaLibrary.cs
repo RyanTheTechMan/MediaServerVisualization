@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public abstract class MediaLibrary {
     internal MediaServer Server;
@@ -6,7 +7,7 @@ public abstract class MediaLibrary {
     public virtual string name { get; protected set; } = "N/A";
     public LibraryType libraryType { get; protected set; } = LibraryType.UNKNOWN;
 
-    public virtual void UpdateMediaList() {
+    public virtual void UpdateMediaList(Action<bool> callback) {
         throw new System.NotImplementedException();
     }
 }

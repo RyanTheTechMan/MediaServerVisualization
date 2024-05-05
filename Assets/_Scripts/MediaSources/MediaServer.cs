@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public abstract class MediaServer {
     internal MediaAccount Account;
@@ -8,7 +9,7 @@ public abstract class MediaServer {
     
     public ServerStatus Status = ServerStatus.NOT_CONFIGURED;
     
-    public virtual void UpdateLibraryList() {
+    public virtual void UpdateLibraryList(Action<bool> callback) {
         throw new System.NotImplementedException();
     }
 }

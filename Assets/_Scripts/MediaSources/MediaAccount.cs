@@ -15,7 +15,7 @@ public abstract class MediaAccount {
     /// <summary>
     /// Set up the account. Opens the login window, etc.
     /// </summary>
-    public virtual void Setup(Action callback) {
+    public virtual void Setup(Action<bool> callback) {
         throw new NotImplementedException();
     }
 
@@ -23,6 +23,10 @@ public abstract class MediaAccount {
     /// Attempts to pull new information from the account.
     /// </summary>
     public virtual void UpdateInfo() {
+        throw new NotImplementedException();
+    }
+    
+    public virtual void UpdateServerList(Action<bool> callback) {
         throw new NotImplementedException();
     }
 }

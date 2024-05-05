@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json.Linq;
@@ -11,24 +12,9 @@ using UnityEngine.Networking;
 public class PlexAccount : MediaAccount {
     private string authToken;
 
-    public override void Setup(Action callback) {
+    public override void Setup(Action<bool> callback) {
         Status = AccountStatus.WAITING;
-        GameManager.instance.StartCoroutine(GenerateAndCheckPin());
-    }
-
-    public void Validate() {
-        Status = AccountStatus.WAITING;
-        GameManager.instance.StartCoroutine(CheckAccessTokenValidity(authToken, (valid) => {
-            if (!valid) {
-                Debug.LogWarning("Plex access token is invalid.");
-                Status = AccountStatus.ERROR;
-                GameManager.instance.StartCoroutine(GenerateAndCheckPin());
-            }
-            else {
-                Debug.Log("Plex access token is valid.");
-                Status = AccountStatus.READY;
-            }
-        }));
+        GameManager.instance.StartCoroutine(GenerateAndCheckPin(callback));
     }
 
     private IEnumerator GetServers(Action<List<PlexServer>> callback) {
@@ -44,17 +30,19 @@ public class PlexAccount : MediaAccount {
                 // Debug.Log(request.downloadHandler.text);
 
                 JArray jDevices = JArray.Parse(request.downloadHandler.text);
-
+                
                 List<PlexServer> servers = new();
                 foreach (JObject device in jDevices) {
                     if (device["provides"]?.ToString() != "server") continue; // Skip non-server devices
                     servers.Add(new PlexServer(this, device));
                 }
 
+                yield return new WaitUntil(() => servers.FindAll(server => server.Status is ServerStatus.READY or ServerStatus.ERROR).Count >= jDevices.Count);
                 callback(servers);
             }
             else {
                 Debug.LogError("Failed to get devices: " + request.error);
+                callback(new());
             }
         }
     }
@@ -93,6 +81,7 @@ public class PlexAccount : MediaAccount {
             }
             else {
                 Debug.LogError("Failed to generate PIN: " + request.error);
+                callback(null,null);
             }
         }
     }
@@ -152,7 +141,7 @@ public class PlexAccount : MediaAccount {
     /// <param name="pinId">The unique identifier for the PIN.</param>
     /// <param name="pinCode">The PIN code to check.</param>
     /// <param name="maxRetries">The maximum number of times to retry before giving up.</param>
-    private IEnumerator CheckPinAndValidateAccessToken(string pinId, string pinCode, uint maxRetries = 20) {
+    private IEnumerator CheckPinAndValidateAccessToken(Action<bool> callback,string pinId, string pinCode, uint maxRetries = 20) {
         uint attempts = 0;
         string token = null;
 
@@ -175,9 +164,11 @@ public class PlexAccount : MediaAccount {
                         Debug.Log("Access token is valid");
                         authToken = token;
                         Status = AccountStatus.READY;
+                        callback(true);
                     } else {
                         Debug.LogError("Access token is invalid");
                         Status = AccountStatus.ERROR;
+                        callback(false);
                     }
                 });
             } else if (attempts < maxRetries) {
@@ -186,25 +177,27 @@ public class PlexAccount : MediaAccount {
             } else {
                 Debug.LogError("Failed to receive auth token after several attempts");
                 Status = AccountStatus.ERROR;
+                callback(false);
             }
         }
     }
 
-    private IEnumerator GenerateAndCheckPin() {
+    private IEnumerator GenerateAndCheckPin(Action<bool> callback) {
         yield return GeneratePin((id, code) => {
             Debug.Log($"Generated PIN: {code}, ID: {id}");
 
             Application.OpenURL(GetPinUrl(code));
-
-            GameManager.instance.StartCoroutine(CheckPinAndValidateAccessToken(id, code));
+            
+            GameManager.instance.StartCoroutine(CheckPinAndValidateAccessToken(callback,id, code));
         });
     }
     
-    public void UpdateServerList() {
+    public override void UpdateServerList(Action<bool> callback) {
         Debug.Log("Getting plex servers...");
         GameManager.instance.StartCoroutine(GetServers(response => {
             Servers = response.ConvertAll(server => (MediaServer)server);
             Debug.Log("Got " + Servers.Count + " plex servers.");
+            callback(!response.Any());
         }));
     }
 }
