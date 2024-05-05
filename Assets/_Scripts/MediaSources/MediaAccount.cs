@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -11,16 +12,19 @@ public abstract class MediaAccount {
     public string Username;
     public Texture ProfilePicture;
 
-    
     /// <summary>
-    /// Setup the account. Opens the login window, etc.
+    /// Set up the account. Opens the login window, etc.
     /// </summary>
-    public virtual void Setup() { }
-    
+    public virtual void Setup(Action callback) {
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Attempts to pull new information from the account.
     /// </summary>
-    public virtual void UpdateInfo() { }
+    public virtual void UpdateInfo() {
+        throw new NotImplementedException();
+    }
 }
 
 public static class AccountManager {

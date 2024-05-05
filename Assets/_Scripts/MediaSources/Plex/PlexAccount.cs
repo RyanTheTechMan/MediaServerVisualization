@@ -9,13 +9,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class PlexAccount : MediaAccount {
-    public string clientIdentifier;
-    public string authToken;
+    private string authToken;
 
-    public override void Setup() {
+    public override void Setup(Action callback) {
         Status = AccountStatus.WAITING;
-        clientIdentifier = "MSV-" + Guid.NewGuid().ToString();
-
         GameManager.instance.StartCoroutine(GenerateAndCheckPin());
     }
 
@@ -33,13 +30,13 @@ public class PlexAccount : MediaAccount {
             }
         }));
     }
-    
-    public IEnumerator GetServers(Action<List<PlexServer>> callback) {
+
+    private IEnumerator GetServers(Action<List<PlexServer>> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get("https://plex.tv/api/v2/resources")) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Token", authToken);
             request.SetRequestHeader("X-Plex-Product", Constants.productName);
-            request.SetRequestHeader("X-Plex-Client-Identifier", clientIdentifier);
+            request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
 
             yield return request.SendWebRequest();
 
@@ -61,12 +58,12 @@ public class PlexAccount : MediaAccount {
             }
         }
     }
-    
-    public IEnumerator CheckAccessTokenValidity(string token, Action<bool> callback) {
+
+    private IEnumerator CheckAccessTokenValidity(string token, Action<bool> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get("https://plex.tv/api/v2/user")) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Product", Constants.productName);
-            request.SetRequestHeader("X-Plex-Client-Identifier", clientIdentifier);
+            request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
             request.SetRequestHeader("X-Plex-Token", token);
             yield return request.SendWebRequest();
 
@@ -79,14 +76,14 @@ public class PlexAccount : MediaAccount {
         }
     }
 
-    public IEnumerator GeneratePin(Action<string, string> callback) {
+    private IEnumerator GeneratePin(Action<string, string> callback) {
         WWWForm form = new WWWForm();
         form.AddField("strong", "true");
 
         using (UnityWebRequest request = UnityWebRequest.Post("https://plex.tv/api/v2/pins", form)) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Product", Constants.productName);
-            request.SetRequestHeader("X-Plex-Client-Identifier", clientIdentifier);
+            request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
 
             yield return request.SendWebRequest();
 
@@ -100,13 +97,13 @@ public class PlexAccount : MediaAccount {
         }
     }
 
-    public string GetPinUrl(string pinCode) {
+    private string GetPinUrl(string pinCode) {
         var uriBuilder = new UriBuilder("https://app.plex.tv/auth") {
             Fragment = "?"
         };
 
         var parameters = new NameValueCollection() {
-            { "clientID", clientIdentifier },
+            { "clientID", Constants.clientIdentifier },
             { "code", pinCode },
             { "context[plexDevice][product]", Constants.productName },
             // { "forwardUrl", "https://github.com/RyanTheTechMan/MediaServerVisualization" } // TODO: Add redirect to github "Thank you for signing in page"
@@ -135,7 +132,7 @@ public class PlexAccount : MediaAccount {
     public IEnumerator VerifyPinAndRetrieveToken(string pinId, string pinCode, Action<string> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get($"https://plex.tv/api/v2/pins/{pinId}?code={pinCode}")) {
             request.SetRequestHeader("accept", "application/json");
-            request.SetRequestHeader("X-Plex-Client-Identifier", clientIdentifier);
+            request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
 
             yield return request.SendWebRequest();
 
@@ -150,38 +147,50 @@ public class PlexAccount : MediaAccount {
     }
 
     /// <summary>
-    /// Checks the given PIN and validates the access token.
+    /// Checks the given PIN and validates the access token. Will retry for 2 minutes before giving up.
     /// </summary>
     /// <param name="pinId">The unique identifier for the PIN.</param>
     /// <param name="pinCode">The PIN code to check.</param>
-    public IEnumerator CheckPinAndValidateAccessToken(string pinId, string pinCode) {
+    /// <param name="maxRetries">The maximum number of times to retry before giving up.</param>
+    private IEnumerator CheckPinAndValidateAccessToken(string pinId, string pinCode, uint maxRetries = 20) {
+        uint attempts = 0;
+        string token = null;
+
         Status = AccountStatus.WAITING;
-        yield return new WaitForSeconds(10);
 
-        yield return VerifyPinAndRetrieveToken(pinId, pinCode, (token) => {
-            if (token != null) {
+        while (attempts < maxRetries && string.IsNullOrEmpty(token)) {
+            yield return new WaitForSeconds(6);
+
+            yield return VerifyPinAndRetrieveToken(pinId, pinCode, receivedToken => {
+                token = receivedToken;
+            });
+
+            attempts++;
+
+            if (!string.IsNullOrEmpty(token)) {
                 Debug.Log($"Received auth token: {StringManipulation.ObfuscateString(token)}");
-
-                GameManager.instance.StartCoroutine(CheckAccessTokenValidity(token, (isValid) => {
+                
+                yield return CheckAccessTokenValidity(token, isValid => {
                     if (isValid) {
                         Debug.Log("Access token is valid");
                         authToken = token;
                         Status = AccountStatus.READY;
-                    }
-                    else {
+                    } else {
                         Debug.LogError("Access token is invalid");
                         Status = AccountStatus.ERROR;
                     }
-                }));
-            }
-            else {
-                Debug.LogError("Failed to receive auth token");
+                });
+            } else if (attempts < maxRetries) {
+                Debug.LogWarning("Failed to receive auth token, retrying...");
+                token = null; // Ensure token is reset for retry logic
+            } else {
+                Debug.LogError("Failed to receive auth token after several attempts");
                 Status = AccountStatus.ERROR;
             }
-        });
+        }
     }
-    
-    public IEnumerator GenerateAndCheckPin() {
+
+    private IEnumerator GenerateAndCheckPin() {
         yield return GeneratePin((id, code) => {
             Debug.Log($"Generated PIN: {code}, ID: {id}");
 

@@ -21,20 +21,16 @@ public class GameManager : MonoBehaviour {
     }
 
     private void Start() {
-        MediaAccount account = new PlexAccount(); // TEMPORARY - Goes around UI
-
-        StartCoroutine(SetupAccount(account));
+        TempFunction();
     }
 
-    private IEnumerator SetupAccount(MediaAccount account) {
-        account.Setup();
-        while(account.Status != AccountStatus.READY) {
-            Debug.Log("Waiting for Account to be ready...");
-            yield return new WaitForSeconds(2);
-        }
+    private void TempFunction() {
+        MediaAccount account = new PlexAccount();
+
+        account.Setup(() => {
+            Debug.Log("Account is ready.");
         
-        Debug.Log("Account is ready.");
-        
-        mediaAccounts.Add(account);
+            mediaAccounts.Add(account);
+        });
     }
 }

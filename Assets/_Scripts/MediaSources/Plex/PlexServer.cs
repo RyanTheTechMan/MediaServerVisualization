@@ -9,9 +9,8 @@ public class PlexServer : MediaServer {
     private readonly JObject serverData;
     public override string name => (string)serverData["name"];
     public bool signedInUserIsOwner => (bool)serverData["owned"];
-    public string connectionURI = "N/A";
-    public bool isLocal = false;
-    // public string displayName => name + (signedInUserIsOwner ? " [Owner]" : "") + " (" + connectionURI + ")"; // THIS SHOULD BE MOVED TO THE UI
+    public string connectionURI { get; private set; } = "N/A";
+    public bool isLocal { get; private set;}
     internal string accessToken => (string)serverData["accessToken"]; // sorta like the authToken, but allows you to access the server's API
 
     public PlexServer(PlexAccount account, JObject serverData) {
