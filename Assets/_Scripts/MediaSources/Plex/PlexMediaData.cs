@@ -9,7 +9,7 @@ public class PlexMediaData : MediaData {
     public override IEnumerator UpdateMainArtTexture() {
         // Debug.Log("UpdateMainArtTexture: " + coverArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverArtURI)) {
-            request.SetRequestHeader("X-Plex-Token", ((PlexSetup)mediaDomain).selectedServer.accessToken);
+            request.SetRequestHeader("X-Plex-Token", ((PlexLibrary)MediaLibrary).plexServer.accessToken);
             request.timeout = 10;
             yield return request.SendWebRequest();
 
@@ -29,7 +29,7 @@ public class PlexMediaData : MediaData {
     public override IEnumerator UpdateBackgroundArtTexture() {
         Debug.Log("UpdateBackgroundArtTexture: " + backgroundArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(backgroundArtURI)) {
-            request.SetRequestHeader("X-Plex-Token", ((PlexSetup)mediaDomain).selectedServer.accessToken);
+            request.SetRequestHeader("X-Plex-Token", ((PlexLibrary)MediaLibrary).plexServer.accessToken);
             request.timeout = 10;
             yield return request.SendWebRequest();
 

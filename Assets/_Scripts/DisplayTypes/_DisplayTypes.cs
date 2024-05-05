@@ -3,7 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-public class DisplayTypes : MonoBehaviour {
+public abstract class DisplayTypes : MonoBehaviour {
     [NonSerialized] public MediaData mediaData;
     public Renderer mainArtRenderer;
     public Renderer backgroundArtRenderer;

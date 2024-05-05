@@ -5,33 +5,35 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class PlexServer {
-    internal PlexSetup plexSetup;
+public class PlexServer : MediaServer {
     private readonly JObject serverData;
-    public string name => (string)serverData["name"] ?? "N/A";
+    public override string name => (string)serverData["name"];
     public bool signedInUserIsOwner => (bool)serverData["owned"];
     public string connectionURI = "N/A";
     public bool isLocal = false;
-    public bool connectionReady = false;
-    public string displayName => name + (signedInUserIsOwner ? " [Owner]" : "") + " (" + connectionURI + ")";
+    // public string displayName => name + (signedInUserIsOwner ? " [Owner]" : "") + " (" + connectionURI + ")"; // THIS SHOULD BE MOVED TO THE UI
     internal string accessToken => (string)serverData["accessToken"]; // sorta like the authToken, but allows you to access the server's API
 
-    internal List<PlexLibrary> plexLibraries = new();
-    
-    public PlexServer(PlexSetup plexSetup, JObject serverData) {
-        this.plexSetup = plexSetup;
+    public PlexServer(PlexAccount account, JObject serverData) {
+        this.Account = account;
         this.serverData = serverData;
-        plexSetup.gameManager.StartCoroutine(GetConnections());
+        GameManager.instance.StartCoroutine(GetConnections());
     }
 
     private IEnumerator GetConnections() {
+        Status = ServerStatus.WAITING;
+        
         JArray connections = JArray.Parse(serverData["connections"].ToString());
         List<Coroutine> coroutines = new();
         foreach (JObject connection in connections) {
-            coroutines.Add(plexSetup.gameManager.StartCoroutine(TestConnection((bool)connection["local"], (string)connection["uri"])));
+            coroutines.Add(GameManager.instance.StartCoroutine(TestConnection((bool)connection["local"], (string)connection["uri"])));
         }
-        foreach (Coroutine coroutine in coroutines) { yield return coroutine; }
-        connectionReady = true;
+
+        foreach (Coroutine coroutine in coroutines) {
+            yield return coroutine;
+        }
+
+        Status = ServerStatus.READY;
     }
 
     private IEnumerator TestConnection(bool isLocal, string connectionURI) {
@@ -77,10 +79,18 @@ public class PlexServer {
                 }
 
                 callback(libraries);
-            } else {
-                Debug.LogError("Failed to get libraries for '" + displayName + "': " + request.error);
+            }
+            else {
+                Debug.LogError("Failed to get libraries for '" + name + "': " + request.error);
             }
         }
     }
-
+    
+    public override void UpdateLibraryList() {
+        Debug.Log("Getting plex libraries...");
+        GameManager.instance.StartCoroutine(GetLibraries(response => {
+            Libraries = response.ConvertAll(library => (MediaLibrary)library);
+            Debug.Log("Got " + Libraries.Count + " plex libraries.");
+        }));
+    }
 }

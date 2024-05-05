@@ -3,15 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class PlexLibrary {
+public class PlexLibrary : MediaLibrary {
     internal PlexServer plexServer;
     private readonly JObject libraryData; // Data about the library
     private JObject mediaData; // Data about the media in the library - Retrieved Async when needed
-    public string title => (string)libraryData["title"];
-    public Type type;
+    public override string name => (string)libraryData["title"];
     public string key => (string)libraryData["key"];
     public uint mediaCount => (uint)mediaData["MediaContainer"]?["size"]; // Will always be 0 if mediaData is null
 
@@ -19,14 +19,14 @@ public class PlexLibrary {
         this.plexServer = plexServer;
         this.libraryData = libraryData;
 
-        type = (string)libraryData["type"] switch {
-            "movie" => Type.MOVIE,
-            "show" => Type.SHOW,
-            _ => Type.UNKNOWN
+        libraryType = (string)libraryData["type"] switch {
+            "movie" => LibraryType.MOVIE,
+            "show" => LibraryType.SHOW,
+            _ => LibraryType.UNKNOWN
         };
     }
 
-    public IEnumerator GetItems(Action<PlexMediaData[]> callback) {
+    public IEnumerator GetItems(Action<List<PlexMediaData>> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get(plexServer.connectionURI + "/library/sections/" + key + "/all")) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Token", plexServer.accessToken);
@@ -58,29 +58,29 @@ public class PlexLibrary {
                         year = (uint)(mediaItem["year"] ?? 0),
                         duration = (uint)(mediaItem["duration"] ?? 0),
                         fileSize = totalSize,
-                        coverArtURI = CreateResizedImageUrl(plexServer.connectionURI,(string)mediaItem["thumb"]),
-                        backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURI,(string)mediaItem["art"]),
-                        mediaDomain = plexServer.plexSetup,
+                        coverArtURI = CreateResizedImageUrl(plexServer.connectionURI, (string)mediaItem["thumb"]),
+                        backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURI, (string)mediaItem["art"]),
+                        MediaLibrary = this,
                     });
                 }
 
-                callback(mediaDataList.ToArray());
-            } else {
-                Debug.LogError("Failed to get libraries items for " + title + " (" + plexServer.displayName + "): " + request.error);
+                callback(mediaDataList);
+            }
+            else {
+                Debug.LogError("Failed to get libraries items for " + name + " (" + plexServer.name + "): " + request.error);
             }
         }
     }
 
-    private static string CreateResizedImageUrl(string baseUrl, string imageUri, int width = 4000, int height = 4000)
-    {
+    private static string CreateResizedImageUrl(string baseUrl, string imageUri, int width = 4000, int height = 4000) {
         return $"{baseUrl}/photo/:/transcode?width={width}&height={height}&minSize=1&upscale=0&url={imageUri}";
     }
-
-    public enum Type {
-        UNKNOWN,
-        MOVIE,
-        SHOW,
+    
+    public override void UpdateMediaList() {
+        Debug.Log("Getting plex media...");
+        GameManager.instance.StartCoroutine(GetItems(response => {
+            MediaData = response.ConvertAll(media => (MediaData)media);
+            Debug.Log("Got " + MediaData.Count + " items in library " + name + " (" + plexServer.name + ")");
+        }));
     }
-
 }
-
