@@ -28,16 +28,19 @@ public class PlexAccount : MediaAccount {
 
             if (request.result == UnityWebRequest.Result.Success) {
                 // Debug.Log(request.downloadHandler.text);
-
+                
                 JArray jDevices = JArray.Parse(request.downloadHandler.text);
                 
-                List<PlexServer> servers = new();
-                foreach (JObject device in jDevices) {
-                    if (device["provides"]?.ToString() != "server") continue; // Skip non-server devices
-                    servers.Add(new PlexServer(this, device));
-                }
-
+                // Filter out non-server devices
+                jDevices = new JArray(jDevices.Where(device => device["provides"]?.ToString() == "server"));
+                
+                // Create a PlexServer object for each device
+                List<PlexServer> servers = (from JObject device in jDevices select new PlexServer(this, device)).ToList();
+                
+                // Wait until all servers are ready or errored
                 yield return new WaitUntil(() => servers.FindAll(server => server.Status is ServerStatus.READY or ServerStatus.ERROR).Count >= jDevices.Count);
+                
+                Debug.Log("All plex servers are ready.");
                 callback(servers);
             }
             else {
