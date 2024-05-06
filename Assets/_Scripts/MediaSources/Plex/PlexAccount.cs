@@ -228,7 +228,7 @@ public class PlexAccount : MediaAccount {
         GameManager.instance.StartCoroutine(GetServers(response => {
             Servers = response.ConvertAll(server => (MediaServer)server);
             Debug.Log("Got " + Servers.Count + " plex servers.");
-            callback(!response.Any());
+            callback(response.Any());
         }));
     }
 }

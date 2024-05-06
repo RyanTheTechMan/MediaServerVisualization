@@ -1,3 +1,3 @@
-﻿public class VHS : DisplayTypes {
+﻿public class VHS : DisplayType {
 
 }

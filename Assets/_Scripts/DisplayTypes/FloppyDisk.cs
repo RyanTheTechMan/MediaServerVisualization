@@ -1,4 +1,4 @@
-﻿public class FloppyDisk : DisplayTypes
+﻿public class FloppyDisk : DisplayType
 {
     
 }

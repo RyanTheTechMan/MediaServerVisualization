@@ -2,7 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-public class DvdType : DisplayTypes {
+public class DvdType : DisplayType {
     public GameObject caseLeft;
     public GameObject caseRight;
     public TMP_Text spineText;

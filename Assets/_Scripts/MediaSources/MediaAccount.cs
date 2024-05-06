@@ -47,7 +47,8 @@ public static class AccountManager {
     }
 
     public static List<MediaAccount> LoadAccountsData() {
-        string json = PlayerPrefs.GetString("AccountsData");
+        string json = PlayerPrefs.GetString("AccountsData", null);
+        if (string.IsNullOrEmpty(json)) return new();
         JsonSerializerSettings settings = new JsonSerializerSettings {
             TypeNameHandling = TypeNameHandling.Objects
         };

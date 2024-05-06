@@ -7,44 +7,41 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
     public static GameManager instance;
-    public List<DisplayTypes> displayTypes; // List of all display types (Configured in Unity)
+    public List<DisplayType> displayTypes; // List of all display types (Configured in Unity)
 
     [HideInInspector] public List<MediaAccount> mediaAccounts = new();
 
     private void Awake() {
-        if (instance == null) {
-            instance = this;
-        }
-        else {
-            Destroy(this);
-        }
+        if (instance == null) instance = this;
+        else Destroy(this);
 
+        // PlayerPrefs.DeleteAll();
         LoadAccounts();
     }
 
     private void Start() {
-        // TempFunction();
+        // SpawnStyleTest();
     }
 
-    private void TempFunction() {
-        MediaAccount account = new PlexAccount();
+    private void SpawnStyleTest() {
+        // create 1000 random media data objects
+        List<MediaData> mediaData = new();
+        for (int i = 0; i < 1000; i++) {
+            mediaData.Add(new PlexMediaData {
+                title = "Title " + i,
+                description = "example description",
+            });
+        }
 
-        account.Setup((callback) => {
-            Debug.Log("Account is ready.");
-            mediaAccounts.Add(account);
-            account.UpdateInfo((callback) => { AccountManager.SaveAccountsData(mediaAccounts); });
-        });
+        PileStyle spawnStyle = new();
+        StartCoroutine(spawnStyle.Create(Vector3.zero, mediaData));
     }
 
     private void LoadAccounts() {
         mediaAccounts = AccountManager.LoadAccountsData();
         mediaAccounts.ForEach((account) => account.UpdateInfo((success) => {
-            if (success) {
-                Debug.Log("Successfully loaded account '" + account.Username + "' of type '" + account.GetType() + "'");
-            }
-            else {
-                Debug.LogWarning("Failed to load account '" + account.Username + "' of type '" + account.GetType() + "'");
-            }
+            if (success) Debug.Log("Successfully loaded account '" + account.Username + "' of type '" + account.GetType() + "'");
+            else Debug.LogWarning("Failed to load account '" + account.Username + "' of type '" + account.GetType() + "'");
         }));
     }
 }

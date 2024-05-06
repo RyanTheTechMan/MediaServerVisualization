@@ -3,5 +3,5 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class SpawnStyle : MonoBehaviour {
-    public abstract IEnumerator Create(Vector3 position, List<MediaLibrary> libraries);
+    public abstract IEnumerator Create(Vector3 center, List<MediaData> mediaData);
 }
