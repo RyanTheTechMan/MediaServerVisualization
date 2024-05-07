@@ -82,7 +82,30 @@ public class DebugUI : MonoBehaviour {
     }
 
     public void OnJellyfinButtonClicked() {
-        // MediaAccount account = new JellyfinAccount();
+        accountDropdown.ClearOptions();
+        accountDropdown.AddOptions(new List<string> { "Adding account..." });
+        MediaAccount account = new JellyfinAccount();
+        account.Setup((result) => {
+            if (result) {
+                Debug.Log("Jellyfin account API is ready.");
+                account.UpdateInfo((success) => {
+                    if (success) {
+                        Debug.Log("Account is ready.");
+                        GameManager.instance.mediaAccounts.Add(account);
+                        AccountManager.SaveAccountsData(GameManager.instance.mediaAccounts);
+                        UpdateAccountDropdown();
+                    }
+                    else {
+                        Debug.LogWarning("Failed to load account '" + account.Username + "' of type '" + account.GetType() + "'");
+                        UpdateAccountDropdown();
+                    }
+                });
+            }
+            else {
+                Debug.LogWarning("Failed to setup Jellyfin account API.");
+                UpdateAccountDropdown();
+            }
+        });
     }
     
     private void OnAccountSelect() {

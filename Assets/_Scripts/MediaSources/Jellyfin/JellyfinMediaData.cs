@@ -1,30 +1,20 @@
-﻿using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public abstract class MediaData {
-    public string title;
-    public string description;
-    
-    public uint year;
-    public ulong duration;
-    public long fileSize;
+public class JellyfinMediaData : MediaData {
+    public string jellyfinID; // a.k.a. ratingKey
 
-    public string coverArtURI;
-    public string backgroundArtURI;
-    public Texture2D coverArtTexture;
-    public Texture2D backgroundArtTexture;
-
-    internal MediaLibrary MediaLibrary;
-
-    public virtual IEnumerator UpdateMainArtTexture() {
+    public override IEnumerator UpdateMainArtTexture() {
+        // Debug.Log("UpdateMainArtTexture: " + coverArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverArtURI)) {
+            request.SetRequestHeader("Authorization", ((JellyfinAccount)MediaLibrary.Server.Account).authorization);
             request.timeout = 10;
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
                 coverArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+                // Debug.Log("UpdateMainArtTexture: " + coverArtTexture.width + "x" + coverArtTexture.height);
             }
             else if (request.responseCode == 404) {
                 Debug.LogWarning("No main art found for " + title);
@@ -35,13 +25,16 @@ public abstract class MediaData {
         }
     }
 
-    public virtual IEnumerator UpdateBackgroundArtTexture() {
+    public override IEnumerator UpdateBackgroundArtTexture() {
+        Debug.Log("UpdateBackgroundArtTexture: " + backgroundArtURI);
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(backgroundArtURI)) {
+            request.SetRequestHeader("Authorization", ((JellyfinAccount)MediaLibrary.Server.Account).authorization);
             request.timeout = 10;
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
                 backgroundArtTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+                Debug.Log("UpdateBackgroundArtTexture: " + backgroundArtTexture.width + "x" + backgroundArtTexture.height);
             }
             else if (request.responseCode == 404) {
                 Debug.LogWarning("No background art found for " + title);

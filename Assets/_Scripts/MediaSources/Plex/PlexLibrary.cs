@@ -55,7 +55,7 @@ public class PlexLibrary : MediaLibrary {
                         description = (string)(mediaItem["summary"] ?? "N/A"),
                         plexID = (uint)(mediaItem["ratingKey"] ?? 0),
                         year = (uint)(mediaItem["year"] ?? 0),
-                        duration = (uint)(mediaItem["duration"] ?? 0),
+                        duration = (ulong)(mediaItem["duration"] ?? 0),
                         fileSize = totalSize,
                         coverArtURI = CreateResizedImageUrl(plexServer.connectionURI, (string)mediaItem["thumb"]),
                         backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURI, (string)mediaItem["art"]),
