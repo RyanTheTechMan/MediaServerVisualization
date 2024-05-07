@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -11,9 +12,11 @@ public class DebugUI : MonoBehaviour {
     public TMP_Dropdown accountDropdown;
     public TMP_Dropdown serverDropdown;
     public TMP_Dropdown libraryDropdown;
+    public TMP_Dropdown styleDropdown;
 
     public Button doneButton;
     public Button deleteAllButton;
+    public Button createTestStyleButton;
 
     private void Start() {
         UpdateAccountDropdown();
@@ -33,6 +36,24 @@ public class DebugUI : MonoBehaviour {
             UpdateAccountDropdown();
             Debug.Log("Deleted all accounts.");
         });
+        
+        createTestStyleButton.onClick.AddListener(() => {
+            List<MediaData> mediaData = new();
+            for (int i = 0; i < 1000; i++) {
+                mediaData.Add(new PlexMediaData {
+                    title = "Title " + i,
+                    description = "example description",
+                });
+            }
+            
+            string selectedStyleName = styleDropdown.options[styleDropdown.value].text;
+            Type selectedStyleType = GameManager.instance.spawnStyles.Find(style => style.GetType().Name == selectedStyleName)?.GetType();
+            SpawnStyle styleInstance = (SpawnStyle) Activator.CreateInstance(selectedStyleType);
+            GameManager.instance.StartCoroutine(styleInstance.Create(Vector3.zero, mediaData));
+        });
+        
+        styleDropdown.ClearOptions();
+        styleDropdown.AddOptions(GameManager.instance.spawnStyles.ConvertAll(style => style.GetType().Name));
         
         accountDropdown.onValueChanged.AddListener((value) => {
             if (value == 0) {
@@ -165,7 +186,7 @@ public class DebugUI : MonoBehaviour {
             if (callback) {
                 Debug.Log("Media list updated with " + library.MediaData.Count + " items.");
                 
-                PileStyle spawnStyle = new();
+                StackStyle spawnStyle = new();
                 StartCoroutine(spawnStyle.Create(Vector3.zero, library.MediaData));
             }
             else {

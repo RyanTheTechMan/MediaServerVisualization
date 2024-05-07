@@ -45,8 +45,6 @@ public class PlexLibrary : MediaLibrary {
                         }
                     }
 
-                    Debug.Log(((PlexServer)Server).connectionURI + (string)mediaItem["thumb"] + ".jpg");
-
                     mediaDataList.Add(new PlexMediaData {
                         title = (string)(mediaItem["title"] ?? "N/A"),
                         description = (string)(mediaItem["summary"] ?? "N/A"),
