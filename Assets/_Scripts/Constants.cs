@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 public class Constants {
-    public const string productName = "Media Server Visualizer";
+    public const string ProductName = "Media Server Visualizer";
     public static string clientIdentifier {
         get {
             string id = PlayerPrefs.GetString("clientIdentifier", "MSV-" + System.Guid.NewGuid());
@@ -9,4 +9,6 @@ public class Constants {
             return id;
         }
     }
+
+    public static readonly string Version = Application.version;
 }

@@ -7,15 +7,12 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class PlexLibrary : MediaLibrary {
-    internal PlexServer plexServer;
     private readonly JObject libraryData; // Data about the library
-    private JObject mediaData; // Data about the media in the library - Retrieved Async when needed
     public override string name => (string)libraryData["title"];
     public string key => (string)libraryData["key"];
-    public uint mediaCount => (uint)mediaData["MediaContainer"]?["size"]; // Will always be 0 if mediaData is null
 
     public PlexLibrary(PlexServer plexServer, JObject libraryData) {
-        this.plexServer = plexServer;
+        Server = plexServer;
         this.libraryData = libraryData;
 
         libraryType = (string)libraryData["type"] switch {
@@ -26,10 +23,10 @@ public class PlexLibrary : MediaLibrary {
     }
 
     public IEnumerator GetItems(Action<List<PlexMediaData>> callback) {
-        using (UnityWebRequest request = UnityWebRequest.Get(plexServer.connectionURI + "/library/sections/" + key + "/all")) {
+        using (UnityWebRequest request = UnityWebRequest.Get(((PlexServer)Server).connectionURI + "/library/sections/" + key + "/all")) {
             request.SetRequestHeader("accept", "application/json");
-            request.SetRequestHeader("X-Plex-Token", plexServer.accessToken);
-
+            request.SetRequestHeader("X-Plex-Token", ((PlexServer)Server).accessToken);
+            
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
@@ -48,7 +45,7 @@ public class PlexLibrary : MediaLibrary {
                         }
                     }
 
-                    Debug.Log(plexServer.connectionURI + (string)mediaItem["thumb"] + ".jpg");
+                    Debug.Log(((PlexServer)Server).connectionURI + (string)mediaItem["thumb"] + ".jpg");
 
                     mediaDataList.Add(new PlexMediaData {
                         title = (string)(mediaItem["title"] ?? "N/A"),
@@ -57,8 +54,8 @@ public class PlexLibrary : MediaLibrary {
                         year = (uint)(mediaItem["year"] ?? 0),
                         duration = (ulong)(mediaItem["duration"] ?? 0),
                         fileSize = totalSize,
-                        coverArtURI = CreateResizedImageUrl(plexServer.connectionURI, (string)mediaItem["thumb"]),
-                        backgroundArtURI = CreateResizedImageUrl(plexServer.connectionURI, (string)mediaItem["art"]),
+                        coverArtURI = CreateResizedImageUrl(((PlexServer)Server).connectionURI, (string)mediaItem["thumb"]),
+                        backgroundArtURI = CreateResizedImageUrl(((PlexServer)Server).connectionURI, (string)mediaItem["art"]),
                         MediaLibrary = this,
                     });
                 }
@@ -66,7 +63,7 @@ public class PlexLibrary : MediaLibrary {
                 callback(mediaDataList);
             }
             else {
-                Debug.LogError("Failed to get libraries items for " + name + " (" + plexServer.name + "): " + request.error);
+                Debug.LogError("Failed to get libraries items for " + name + " (" + Server.name + "): " + request.error);
             }
         }
     }
@@ -79,7 +76,7 @@ public class PlexLibrary : MediaLibrary {
         Debug.Log("Getting plex media...");
         GameManager.instance.StartCoroutine(GetItems(response => {
             MediaData = response.ConvertAll(media => (MediaData)media);
-            Debug.Log("Got " + MediaData.Count + " items in library " + name + " (" + plexServer.name + ")");
+            Debug.Log("Got " + MediaData.Count + " items in library " + name + " (" + Server.name + ")");
             callback(true);
         }));
     }

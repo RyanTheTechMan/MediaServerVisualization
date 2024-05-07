@@ -13,6 +13,7 @@ public class DebugUI : MonoBehaviour {
     public TMP_Dropdown libraryDropdown;
 
     public Button doneButton;
+    public Button deleteAllButton;
 
     private void Start() {
         UpdateAccountDropdown();
@@ -26,6 +27,12 @@ public class DebugUI : MonoBehaviour {
         plexButton.onClick.AddListener(OnPlexButtonClicked);
         jellyfinButton.onClick.AddListener(OnJellyfinButtonClicked);
         doneButton.onClick.AddListener(OnDoneButtonClicked);
+        deleteAllButton.onClick.AddListener(() => {
+            GameManager.instance.mediaAccounts.Clear();
+            AccountManager.SaveAccountsData(GameManager.instance.mediaAccounts);
+            UpdateAccountDropdown();
+            Debug.Log("Deleted all accounts.");
+        });
         
         accountDropdown.onValueChanged.AddListener((value) => {
             if (value == 0) {

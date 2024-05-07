@@ -22,7 +22,7 @@ public class PlexAccount : MediaAccount {
         using (UnityWebRequest request = UnityWebRequest.Get("https://plex.tv/api/v2/resources")) {
             request.SetRequestHeader("accept", "application/json");
             request.SetRequestHeader("X-Plex-Token", AuthToken);
-            request.SetRequestHeader("X-Plex-Product", Constants.productName);
+            request.SetRequestHeader("X-Plex-Product", Constants.ProductName);
             request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
 
             yield return request.SendWebRequest();
@@ -54,7 +54,7 @@ public class PlexAccount : MediaAccount {
     private IEnumerator CheckAccessTokenValidity(string token, Action<bool> callback) {
         using (UnityWebRequest request = UnityWebRequest.Get("https://plex.tv/api/v2/user")) {
             request.SetRequestHeader("accept", "application/json");
-            request.SetRequestHeader("X-Plex-Product", Constants.productName);
+            request.SetRequestHeader("X-Plex-Product", Constants.ProductName);
             request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
             request.SetRequestHeader("X-Plex-Token", token);
             yield return request.SendWebRequest();
@@ -74,7 +74,7 @@ public class PlexAccount : MediaAccount {
 
         using (UnityWebRequest request = UnityWebRequest.Post("https://plex.tv/api/v2/pins", form)) {
             request.SetRequestHeader("accept", "application/json");
-            request.SetRequestHeader("X-Plex-Product", Constants.productName);
+            request.SetRequestHeader("X-Plex-Product", Constants.ProductName);
             request.SetRequestHeader("X-Plex-Client-Identifier", Constants.clientIdentifier);
 
             yield return request.SendWebRequest();
@@ -98,7 +98,7 @@ public class PlexAccount : MediaAccount {
         var parameters = new NameValueCollection() {
             { "clientID", Constants.clientIdentifier },
             { "code", pinCode },
-            { "context[plexDevice][product]", Constants.productName },
+            { "context[plexDevice][product]", Constants.ProductName },
             // { "forwardUrl", "https://github.com/RyanTheTechMan/MediaServerVisualization" } // TODO: Add redirect to github "Thank you for signing in page"
         };
 
@@ -198,10 +198,35 @@ public class PlexAccount : MediaAccount {
     }
 
     public override void UpdateInfo(Action<bool> callback) {
-        GameManager.instance.StartCoroutine(GetUsername((username) => {
+        GameManager.instance.StartCoroutine(UpdateInfoCoroutine(callback));
+    }
+
+    private IEnumerator UpdateInfoCoroutine(Action<bool> callback) {
+        Status = AccountStatus.WAITING;
+
+        List<Coroutine> coroutines = new();
+
+        bool failed = false;
+
+        coroutines.Add(GameManager.instance.StartCoroutine(GetUsername((username) => {
             Username = username;
+            if (username == null) {
+                failed = true;
+            }
+        })));
+
+        foreach (Coroutine coroutine in coroutines) {
+            yield return coroutine;
+        }
+
+        if (failed) {
+            Status = AccountStatus.ERROR;
+            callback(false);
+        }
+        else {
+            Status = AccountStatus.READY;
             callback(true);
-        }));
+        }
     }
 
     public IEnumerator GetUsername(Action<string> callback) {
@@ -212,13 +237,13 @@ public class PlexAccount : MediaAccount {
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success) {
-                //Debug.Log(request.downloadHandler.text);
                 JObject data = JObject.Parse(request.downloadHandler.text);
-                string username = (string)data["username"];
-                callback(username);
+                Username = (string)data["username"];
+                callback(Username);
             }
             else {
-                Debug.LogError("Web request fail!");
+                Debug.LogError("Failed to get username: " + request.error);
+                callback(null);
             }
         }
     }
