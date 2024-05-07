@@ -4,7 +4,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class PileStyle : SpawnStyle {
-    public override IEnumerator Create(Vector3 position, List<MediaData> mediaData) {
+    public override IEnumerator Create(DisplayType displayType, Vector3 position, List<MediaData> mediaData) {
         const int spawnGroupSize = 10;
         int groupSize = 0;
         List<DisplayType> mediaObjects = new();
@@ -13,7 +13,7 @@ public class PileStyle : SpawnStyle {
             Vector3 posOffset = new Vector3(Random.Range(-8f, 8f), Random.Range(0f, 5f), Random.Range(-8f, 8f));
             Vector3 velOffset = new Vector3(Random.Range(-3f, 3f), Random.Range(0f, 3f), Random.Range(-3f, 3f));
 
-            DisplayType newObject = Instantiate(GameManager.instance.displayTypes[0].gameObject).GetComponent<DisplayType>(); // TODO: DisplayType is hardcoded here
+            DisplayType newObject = Instantiate(displayType.gameObject).GetComponent<DisplayType>(); // TODO: DisplayType is hardcoded here
             newObject.transform.position = position + posOffset;
             newObject.GetComponent<Rigidbody>().linearVelocity = velOffset;
 

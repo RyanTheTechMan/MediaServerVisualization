@@ -4,9 +4,8 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 public class StackStyle : SpawnStyle {
-    public override IEnumerator Create(Vector3 position, List<MediaData> mediaData) {
-        GameObject prefab = GameManager.instance.displayTypes[0].gameObject;
-        BoxCollider collider = prefab.GetComponent<BoxCollider>();
+    public override IEnumerator Create(DisplayType displayType, Vector3 position, List<MediaData> mediaData) {
+        BoxCollider collider = displayType.GetComponent<BoxCollider>();
         if (collider == null) {
             Debug.LogError("Prefab must have a BoxCollider component.");
             yield break;
@@ -16,7 +15,7 @@ public class StackStyle : SpawnStyle {
 
         Vector3 currentPosition = position;
         foreach (MediaData data in mediaData) {
-            GameObject newItem = Instantiate(prefab, currentPosition, Quaternion.identity);
+            GameObject newItem = Instantiate(displayType.gameObject, currentPosition, Quaternion.identity);
             newItem.GetComponent<Rigidbody>().isKinematic = true;
             newItem.GetComponent<DisplayType>().mediaData = data;
 
@@ -39,7 +38,7 @@ public class StackStyle : SpawnStyle {
 
             newItem.transform.rotation = rotation;
 
-            currentPosition += new Vector3(0, adjustedColliderSize.y * prefab.transform.localScale.y * 2, 0);
+            currentPosition += new Vector3(0, adjustedColliderSize.y * displayType.transform.localScale.y * 2, 0);
 
             yield return null;
         }

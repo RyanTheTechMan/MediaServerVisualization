@@ -13,6 +13,7 @@ public class DebugUI : MonoBehaviour {
     public TMP_Dropdown serverDropdown;
     public TMP_Dropdown libraryDropdown;
     public TMP_Dropdown styleDropdown;
+    public TMP_Dropdown displayTypeDropdown;
 
     public Button doneButton;
     public Button deleteAllButton;
@@ -49,11 +50,18 @@ public class DebugUI : MonoBehaviour {
             string selectedStyleName = styleDropdown.options[styleDropdown.value].text;
             Type selectedStyleType = GameManager.instance.spawnStyles.Find(style => style.GetType().Name == selectedStyleName)?.GetType();
             SpawnStyle styleInstance = (SpawnStyle) Activator.CreateInstance(selectedStyleType);
-            GameManager.instance.StartCoroutine(styleInstance.Create(Vector3.zero, mediaData));
+            
+            string selectedDisplayTypeName = displayTypeDropdown.options[displayTypeDropdown.value].text;
+            DisplayType selectedDisplayTypeType = GameManager.instance.displayTypes.Find(type => type.GetType().Name == selectedDisplayTypeName);
+            
+            GameManager.instance.StartCoroutine(styleInstance.Create(selectedDisplayTypeType, Vector3.zero, mediaData));
         });
         
         styleDropdown.ClearOptions();
         styleDropdown.AddOptions(GameManager.instance.spawnStyles.ConvertAll(style => style.GetType().Name));
+        
+        displayTypeDropdown.ClearOptions();
+        displayTypeDropdown.AddOptions(GameManager.instance.displayTypes.ConvertAll(type => type.GetType().Name));
         
         accountDropdown.onValueChanged.AddListener((value) => {
             if (value == 0) {
@@ -186,8 +194,14 @@ public class DebugUI : MonoBehaviour {
             if (callback) {
                 Debug.Log("Media list updated with " + library.MediaData.Count + " items.");
                 
-                StackStyle spawnStyle = new();
-                StartCoroutine(spawnStyle.Create(Vector3.zero, library.MediaData));
+                string selectedStyleName = styleDropdown.options[styleDropdown.value].text;
+                Type selectedStyleType = GameManager.instance.spawnStyles.Find(style => style.GetType().Name == selectedStyleName)?.GetType();
+                SpawnStyle styleInstance = (SpawnStyle) Activator.CreateInstance(selectedStyleType);
+            
+                string selectedDisplayTypeName = displayTypeDropdown.options[displayTypeDropdown.value].text;
+                DisplayType selectedDisplayTypeType = GameManager.instance.displayTypes.Find(type => type.GetType().Name == selectedDisplayTypeName);
+                
+                StartCoroutine(styleInstance.Create(selectedDisplayTypeType, Vector3.zero, library.MediaData));
             }
             else {
                 Debug.LogWarning("Failed to update media list.");
