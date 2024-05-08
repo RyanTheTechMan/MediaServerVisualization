@@ -24,9 +24,9 @@ public class PileStyle : SpawnStyle {
                 groupSize = 0;
                 yield return new WaitForSeconds(1f / 100f);
             }
-
             groupSize++;
         }
+        GameManager.instance.StartCoroutine(CamCheck(mediaObjects));
         
         // TODO: This should be done as you get close to the art in a queued fashion. Not all at once, let alone, sequentially.
         // foreach (DisplayType mediaObject in mediaObjects) {

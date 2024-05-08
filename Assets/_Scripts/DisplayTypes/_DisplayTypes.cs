@@ -9,6 +9,8 @@ public abstract class DisplayType : MonoBehaviour {
     public Renderer backgroundArtRenderer;
     [SerializeField] protected TMP_Text titleText;
     [SerializeField] protected TMP_Text descriptionText;
+    [HideInInspector] public bool IsFrozen;
+    [HideInInspector] public bool IsHidden;
 
     public virtual void Start() {
         SetTitleText(mediaData.title);
@@ -31,5 +33,15 @@ public abstract class DisplayType : MonoBehaviour {
         yield return backgroundArtCoroutine;
 
         Debug.Log("Done with UpdateArt() for " + mediaData.title);
+    }
+
+    public virtual void Freeze(bool frozen) {
+        gameObject.GetComponent<Rigidbody>().isKinematic = frozen;
+        IsFrozen = frozen;
+    }
+
+    public virtual void Hide(bool hidden) {
+        gameObject.SetActive(!hidden);
+        IsHidden = hidden;
     }
 }

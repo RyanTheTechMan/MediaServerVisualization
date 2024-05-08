@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class StackStyle : SpawnStyle {
     public override IEnumerator Create(DisplayType displayType, Vector3 position, List<MediaData> mediaData) {
+        List<DisplayType> listOfObjects = new List<DisplayType>();
         BoxCollider collider = displayType.GetComponent<BoxCollider>();
         if (collider == null) {
             Debug.LogError("Prefab must have a BoxCollider component.");
@@ -17,7 +18,9 @@ public class StackStyle : SpawnStyle {
         foreach (MediaData data in mediaData) {
             GameObject newItem = Instantiate(displayType.gameObject, currentPosition, Quaternion.identity);
             newItem.GetComponent<Rigidbody>().isKinematic = true;
-            newItem.GetComponent<DisplayType>().mediaData = data;
+            
+            DisplayType dType = newItem.GetComponent<DisplayType>();
+            dType.mediaData = data;
 
             float maxSide = Mathf.Max(colliderSize.x, colliderSize.y, colliderSize.z);
 
@@ -39,10 +42,11 @@ public class StackStyle : SpawnStyle {
             newItem.transform.rotation = rotation;
 
             currentPosition += new Vector3(0, adjustedColliderSize.y * displayType.transform.localScale.y * 2, 0);
+            listOfObjects.Add(dType);
 
             yield return null;
         }
-
+        GameManager.instance.StartCoroutine(CamCheck(listOfObjects));
         yield return null;
     }
 }

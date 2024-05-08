@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LibraryStyle : SpawnStyle {
     public override IEnumerator Create(DisplayType displayType, Vector3 position, List<MediaData> mediaData) {
-        Quaternion rotation = new Quaternion(0, 0, 0,0);
+        Quaternion rotation = new Quaternion(0, 0, 0, 0);
         Vector3 xOffset = new Vector3(0, 0, 0);
         List<DisplayType> listOfObjects = new List<DisplayType>();
         foreach (MediaData mediaItem in mediaData) {
@@ -18,23 +18,5 @@ public class LibraryStyle : SpawnStyle {
 
         GameManager.instance.StartCoroutine(CamCheck(listOfObjects));
         yield return null;
-    }
-
-    public IEnumerator CamCheck(List<DisplayType> listOfObjects) {
-        Vector3 objectPos;
-        while (true) {
-            Transform camTransform = Camera.main.transform;
-            Vector3 camPos = camTransform.position;
-            foreach (var obj in listOfObjects) {
-                objectPos = obj.transform.position;
-                if (Vector3.Distance(objectPos, camPos) >= 10) {
-                    obj.gameObject.SetActive(false);
-                }
-                else {
-                    obj.gameObject.SetActive(true);
-                }
-            }
-            yield return null;
-        }
     }
 }
