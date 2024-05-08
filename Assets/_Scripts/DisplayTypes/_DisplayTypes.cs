@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
 
 public abstract class DisplayType : MonoBehaviour {
+    [Header("Base Properties")]
     [NonSerialized] public MediaData mediaData;
     public Renderer mainArtRenderer;
     public Renderer backgroundArtRenderer;
@@ -12,9 +13,20 @@ public abstract class DisplayType : MonoBehaviour {
     [HideInInspector] public bool IsFrozen;
     [HideInInspector] public bool IsHidden;
 
+    
+    [Header("Hitbox")]
+    [SerializeField] private BoxCollider hitbox; // If null, will use the first BoxCollider found on the GameObject
+    public BoxCollider Hitbox {
+        get {
+            if (hitbox == null) hitbox = GetComponent<BoxCollider>();
+            return hitbox;
+        }
+        set => hitbox = value;
+    }
+    
     public virtual void Start() {
-        SetTitleText(mediaData.title);
-        SetDescriptionText(mediaData.description);
+        SetTitleText(mediaData?.title ?? "");
+        SetDescriptionText(mediaData?.description ?? "");
     }
 
     protected virtual void SetTitleText(string text) {

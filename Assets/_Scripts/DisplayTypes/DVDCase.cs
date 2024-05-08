@@ -39,6 +39,4 @@ public class DvdType : DisplayType {
             backgroundArtRenderer.materials[0].mainTexture = mediaData.backgroundArtTexture;
         }
     }
-
-
 }
