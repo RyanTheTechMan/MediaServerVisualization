@@ -28,7 +28,7 @@ public class StackStyle : SpawnStyle {
             listOfObjects.Add(dType);
             yield return null;
         }
-        GameManager.instance.StartCoroutine(CamCheck(listOfObjects));
+        // GameManager.instance.StartCoroutine(CamCheck(listOfObjects)); Physics should always be frozen in the current stack mode.
         yield return null;
     }
 }
