@@ -15,17 +15,19 @@ public abstract class SpawnStyle : MonoBehaviour {
                 float distance = Vector3.Distance(objectPos, camPos);
 
                 if (distance >= 20) {
+                    if (!obj.IsFrozen) {
+                        obj.Freeze(true);
+                    }
                     if (!obj.IsHidden) {
                         obj.Hide(true);
                     }
                 }
                 else if (distance >= 10) {
-                    if (!obj.IsFrozen) {
-                        obj.Freeze(true);
-                    }
-
                     if (obj.IsHidden) {
                         obj.Hide(false);
+                    }
+                    if (!obj.IsFrozen) {
+                        obj.Freeze(true);
                     }
                 }
                 else {

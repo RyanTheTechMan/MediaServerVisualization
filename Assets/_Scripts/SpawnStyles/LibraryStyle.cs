@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class LibraryStyle : SpawnStyle {
     public override IEnumerator Create(DisplayType displayType, Vector3 position, List<MediaData> mediaData) {
+        Vector3 colliderSize = displayType.Hitbox.size;
+        colliderSize.Scale(displayType.transform.localScale);
         Quaternion rotation = new Quaternion(0, 0, 0, 0);
-        Vector3 xOffset = new Vector3(0, 0, 0);
+        Vector3 xOffset = new Vector3(0, colliderSize.y/2, 0);
         List<DisplayType> listOfObjects = new List<DisplayType>();
         foreach (MediaData mediaItem in mediaData) {
-            xOffset.x = xOffset.x + 1;
+            xOffset.x += colliderSize.x*1.25f;
             DisplayType newObject = Instantiate(displayType.gameObject).GetComponent<DisplayType>();
             newObject.transform.position = position + xOffset;
             newObject.transform.rotation = rotation;
