@@ -10,6 +10,10 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// https://www.plex.tv/about/privacy-legal/plex-trademarks-and-guidelines/ - Plex Trademarks and Guidelines
+// https://brand.plex.tv/d/sCoLEtmF5hWG/style-guide#/visual/logo - Official Plex logo
+// NOTE: Art/Sources/Plex/icon.svg - Is unofficial and not from Plex
+
 public class PlexAccount : MediaAccount {
     [JsonProperty] internal string AuthToken;
 

@@ -1,5 +1,15 @@
-﻿public abstract class MediaSource {
-    public virtual string name { get; set; } = "Default Media Source";
-    public virtual string iconPath { get; set; }= "Icons/DefaultIcon.jpg";
-    public virtual string bannerPath { get; set; }= "Icons/DefaultBanner.jpg";
+﻿using Unity.VectorGraphics;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class MediaSource : MonoBehaviour {
+    public new string name;
+
+    public bool supportsSVG = true;
+    
+    public SVGImage iconSVG;
+    public SVGImage bannerSVG;
+    
+    public Image iconImage;
+    public Image bannerImage;
 }
