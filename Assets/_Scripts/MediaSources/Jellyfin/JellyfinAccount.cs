@@ -6,6 +6,9 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
+// https://jellyfin.org/docs/general/contributing/branding
+// https://github.com/jellyfin/jellyfin-ux/tree/master/branding/SVG (banner-light / banner-dark & icon-solid-white)
+
 public class JellyfinAccount : MediaAccount {
     internal string authorization => "MediaBrowser Token=\"" + AccessToken + "\"";
     [JsonProperty] internal string AccessToken = "";

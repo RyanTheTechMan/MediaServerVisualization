@@ -8,6 +8,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour {
     public static GameManager instance;
     public List<DisplayType> displayTypes; // List of all display types (Configured in Unity)
+    public List<MediaSource> mediaSources; // List of all media sources (Configured in Unity)
 
     [HideInInspector] public List<MediaAccount> mediaAccounts = new();
     
