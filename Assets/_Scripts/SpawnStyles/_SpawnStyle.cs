@@ -26,9 +26,6 @@ public abstract class SpawnStyle : MonoBehaviour {
                     if (obj.IsHidden) {
                         obj.Hide(false);
                     }
-                    if (!obj.IsFrozen) {
-                        obj.Freeze(true);
-                    }
                 }
                 else {
                     if (obj.IsFrozen || obj.IsHidden) {
